@@ -1,0 +1,2 @@
+Q: Why are there two pages in a minimal sample?
+A: Because I don't think it makes any sense to use a static site generator for a website with one page. Then you could just as well write that one page in HTML directly.
