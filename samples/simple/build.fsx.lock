@@ -475,4 +475,3 @@ NUGET
     Fake.StaticGen (1.0.0)
       Fake.IO.Filesystem (>= 5.12)
       FSharp.Core (>= 4.5.2)
-      Giraffe (>= 3.5.1)
