@@ -12,10 +12,8 @@ type File =
     { Url : string
       Content : string }
 
-type StaticSite<'config, 'post, 'page> =
+type StaticSite<'config, 'page> =
     { Config : 'config
-      Layout : 'config -> 'post list -> Page<'page> -> XmlNode
-      Posts : 'post list
       Pages : Page<'page> list
       Files : File list }
 
@@ -26,8 +24,6 @@ type HtmlTemplate<'config, 'details, 't> = 'config -> 'details -> 't -> XmlNode
 module StaticSite =
     let fromConfig config =
         { Config = config 
-          Layout = (fun _ _ p -> p.Content)
-          Posts = []
           Pages = []
           Files = [] }
     
@@ -38,20 +34,24 @@ module StaticSite =
         let page = { Url = url; Details = details; Content = content }
         { site with Pages = page::site.Pages }
 
+    let withPages (pages : Page<'page> list) site =
+        { site with Pages = List.append pages site.Pages }
+
     let withPageFromFile (url : string) (filePath : string) (parse : Parser<'details * 't>) (render : HtmlTemplate<'config, 'details, 't>) site =
         let details, content = 
             File.readAsString filePath |> parse
         site |> withPage url details (render site.Config details content)
 
-    let withPosts (posts : 'post list) site =
-        { site with Posts = List.append posts site.Posts }
-
-    let withPostsFromFiles (files : #seq<string>) (parse : Parser<'post>) site =
-        let posts = 
+    let withPagesFromFiles (url : 'details -> string) (files : #seq<string>) (parse : Parser<'details * 't>) (render : HtmlTemplate<'config, 'details, 't>) site =
+        let pages = 
             files
             |> Seq.map (File.readAsString >> parse)
+            |> Seq.map (fun (details, t) -> 
+                { Url = url details
+                  Details = details
+                  Content = render site.Config details t })
             |> Seq.toList
-        site |> withPosts posts
+        site |> withPages pages
 
     let withFile (url : string) (content : string) site =
         { site with Files = { Url = url; Content = content }::site.Files }
@@ -62,27 +62,20 @@ module StaticSite =
     let withFiles (files : File list) site =
         { site with Files = List.append files site.Files }
 
-    let withOverviewPage (url : string) (pageDetails : 'details) (render : HtmlTemplate<'config, 'details, 'post list>) site =
-        let content = render site.Config pageDetails site.Posts
+    let withOverviewPage (url : string) (pageDetails : 'page) (render : HtmlTemplate<'config, 'page, Page<'page> list>) site =
+        let content = render site.Config pageDetails site.Pages
         site |> withPage url pageDetails content
 
     // For example for RSS feeds
-    let withOverviewFile (url : string) (createFile : FileTemplate<'config, 'post list>) site =
-        let content = createFile site.Config site.Posts
+    let withOverviewFile (url : string) (createFile : FileTemplate<'config, Page<'page> list>) site =
+        let content = createFile site.Config site.Pages
         site |> withFile url content
 
-    let renderPosts (getUrl : 'post -> string) (getDetails : 'post -> 'details) (render : HtmlTemplate<'config, 'details, 'post>) site =
-        let pages = 
-            site.Posts 
-            |> List.map (fun p -> 
-                let url = getUrl p
-                let details = getDetails p
-                let content = render site.Config details p
-                { Url = url; Details = details; Content = content })
-        { site with Pages = List.append pages site.Pages }
-
     let withLayout layout site =
-        { site with Layout = layout }
+        { site with 
+            Pages =
+                site.Pages
+                |> List.map (fun page -> { page with Content = layout site page }) }
 
     let private normalizeUrl (url : string) =
         url.Replace("\\", "/").Trim().TrimEnd('/').TrimStart('/').ToLowerInvariant()
@@ -96,7 +89,7 @@ module StaticSite =
         site.Pages
         |> List.map (fun p -> 
             { Url = pageUrlToFullUrl p.Url 
-              Content = site.Layout site.Config site.Posts p |> renderHtmlDocument })
+              Content = p.Content |> renderHtmlDocument })
         |> List.append site.Files
         |> List.iter (fun p -> 
             let url = normalizeUrl p.Url

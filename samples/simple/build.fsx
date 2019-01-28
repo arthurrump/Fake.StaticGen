@@ -12,57 +12,61 @@ nuget Fake.StaticGen 1.0.0 //"
 type SiteConfig =
     { Title : string }
 
-type Post =
-    { Title : string
-      Paragraphs : string [] }
-
 type PageDetails =
-    { PageTitle : string }
+    | About
+    | Overview of string
+    | Post of title : string * firstParagraph : string
 
 open Giraffe.GiraffeViewEngine
 open Fake.StaticGen
 open Fake.IO.Globbing.Operators
 
-let postUrl (post : Post) =
-    "/" + post.Title.Replace("-", "").Replace(" ", "-").ToLowerInvariant()
+let postUrl (title : string) =
+    "/" + (title.Replace("-", "").Replace(" ", "-").ToLowerInvariant() 
+           |> String.filter (fun c -> (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c = '-'))
+
+let url page =
+    match page with
+    | Post (title, _) -> postUrl title
+    | _ -> ""
 
 module Parsers =
-    let post : Parser<Post> = fun input ->
+    let post : Parser<PageDetails * string []> = fun input ->
         let lines = input.Split('\n')
-        { Title = lines |> Array.head
-          Paragraphs = lines |> Array.tail }
+        Post (lines.[0], lines.[1]), lines |> Array.tail
 
     let about : Parser<PageDetails * string []> = fun input ->
-        { PageTitle = "About" }, input.Split('\n')
+        About, input.Split('\n')
 
 module Templates =
-    let about : Template<SiteConfig, PageDetails, string []> = fun _ page paragraphs ->
+    let page _ page paragraphs =
+        let title = 
+            match page with
+            | About -> "About"
+            | Overview title -> title
+            | Post (title, _) -> title
         section []
-          [ yield h2 [] [ str page.PageTitle ]
+          [ yield h2 [] [ str title ]
             for par in paragraphs -> p [] [ str par ] ]
 
-    let post : Template<SiteConfig, PageDetails, Post> = fun _ _ post ->
-        article [] 
-          [ yield h2 [] [ str post.Title ]
-            for par in post.Paragraphs -> p [] [ str par ] ]
-
-    let postsOverview : Template<SiteConfig, PageDetails, Post list> = fun _ page posts ->
+    let overview _ (Overview title) pages =
+        let posts = pages |> List.choose (fun p -> match p.Details with Post (t, p) -> Some (t, p) | _ -> None)
         section [] 
-          [ yield h2 [] [ str page.PageTitle ]
-            for po in posts -> 
+          [ yield h2 [] [ str title ]
+            for title, content in posts -> 
               article [] 
-                [ a [ _href (postUrl po) ] [ h2 [] [ str po.Title ] ] 
-                  p [] [ str (po.Paragraphs.[0]) ]
+                [ a [ _href (postUrl title) ] [ h2 [] [ str title ] ] 
+                  p [] [ str content ]
                   hr [] ] ]
 
-    let layout (config : SiteConfig) _ (page : Page<PageDetails>) =
+    let layout site (page : Page<PageDetails>) =
         html []
           [ head [] 
-              [ title [] [ str config.Title ]
+              [ title [] [ str site.Config.Title ]
                 link [ _rel "stylesheet"
                        _href "/style.css" ] ] 
             body [] 
-              [ h1 [] [ str config.Title ]
+              [ h1 [] [ str site.Config.Title ]
                 nav [] 
                   [ str "Navigation: "
                     a [ _href "/" ] [ str "Posts" ]
@@ -72,12 +76,17 @@ module Templates =
 
 Target.create "Build" <| fun _ ->
     StaticSite.fromConfig { Title = "Fake.StaticGen Simple Sample" }
-    |> StaticSite.withLayout Templates.layout
-    |> StaticSite.withPostsFromFiles (!! "content/*.post") Parsers.post
-    |> StaticSite.renderPosts postUrl (fun p -> { PageTitle = p.Title }) Templates.post
-    |> StaticSite.withOverviewPage "/" { PageTitle = "Posts" } Templates.postsOverview
-    |> StaticSite.withPageFromFile "/about.html" "content/about.page" Parsers.about Templates.about
+    |> StaticSite.withPagesFromFiles url (!! "content/*.post") Parsers.post Templates.page
+    |> StaticSite.withOverviewPage "/" (Overview "Posts") Templates.overview
+    |> StaticSite.withPageFromFile "/about.html" "content/about.page" Parsers.about Templates.page
     |> StaticSite.withFileFromPath "/style.css" "style.css"
+    |> StaticSite.withLayout Templates.layout
     |> StaticSite.generate "public"
 
 Target.runOrDefault "Build"
+
+// Weirdnesses:
+// - Templates need to match on types that that template shouldn't handle anyway
+//   -> Or get a compiler warning that there are unmatched things
+// - Content cannot be used effectively in overview, because its already a big block of Html
+//   -> Needs duplication to details
