@@ -35,6 +35,7 @@ let template (site : StaticSite<SiteConfig, Page>) page =
             <hr/>
             <h2>%s</h2>
             %s
+        </body></html>
         """
         site.Config.Title site.Config.Title
         page.Content.Title
