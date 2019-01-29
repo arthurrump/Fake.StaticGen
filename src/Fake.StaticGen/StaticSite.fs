@@ -23,7 +23,7 @@ module StaticSite =
         filePath |> File.readAsString |> parse |> fromConfig
 
     /// Add a new page
-    let withPage url content site =
+    let withPage content url site =
         let page = { Url = url; Content = content }
         { site with Pages = page::site.Pages }
 
@@ -32,54 +32,55 @@ module StaticSite =
         { site with Pages = List.append pages site.Pages }
 
     /// Parse a source file and add it as a page
-    let withPageFromSource url sourceFile parse site =
-        let content = 
-            File.readAsString sourceFile |> parse
-        site |> withPage url content
+    let withPageFromSource sourceFile parse site =
+        let page = File.readAsString sourceFile |> parse sourceFile
+        site |> withPages [ page ]
 
     /// Parse multiple source files and add them as pages
-    let withPagesFromSources url (sourceFiles : #seq<string>) parse site =
+    let withPagesFromSources (sourceFiles : #seq<string>) parse site =
         let pages = 
             sourceFiles
-            |> Seq.map (fun path -> 
-                let content = path |> File.readAsString |> parse
-                { Url = url path content
-                  Content = content })
+            |> Seq.map (fun path -> path |> File.readAsString |> parse path)
             |> Seq.toList
         site |> withPages pages
 
     /// Add a file
-    let withFile url content site =
-        { site with Files = { Url = url; Content = content }::site.Files }
+    let withFile content url site =
+        let file = { Url = url; Content = content }
+        { site with Files = file::site.Files }
 
     /// Add multiple files
     let withFiles files site =
         { site with Files = List.append files site.Files }
 
     /// Copy a source file
-    let withFileFromSource url sourceFile site =
-        site |> withFile url (File.readAsString sourceFile)
+    let withFileFromSource sourceFile url site =
+        site |> withFile (File.readAsString sourceFile) url
 
     /// Copy multiple source files
-    let withFilesFromSources url (sourceFiles : #seq<string>) site =
+    let withFilesFromSources (sourceFiles : #seq<string>) urlMapper site =
         let files = 
             sourceFiles 
             |> Seq.map (fun path -> 
                 let content = path |> File.readAsString
-                { Url = url path content
+                { Url = urlMapper path
                   Content = content })
             |> Seq.toList
         site |> withFiles files
 
     /// Create an overview page based on the list of all pages
-    let withOverviewPage url createOverview site =
-        let content = createOverview site.Pages
-        site |> withPage url content
+    let withOverviewPage createOverview site =
+        let page = createOverview site.Pages
+        site |> withPages [ page ]
+
+    /// Create multiple (paginated) overview pages based on the list of all pages
+    let withOverviewPages createOverviewPages site =
+        site |> withPages (createOverviewPages site.Pages)
 
     /// Create an overview file based on the list of all pages, e.g. an RSS feed
-    let withOverviewFile url createOverview site =
-        let content = createOverview site.Pages
-        site |> withFile url content
+    let withOverviewFile createOverview site =
+        let file = createOverview site.Pages
+        site |> withFiles [ file ]
 
     let private normalizeUrl (url : string) =
         url.Replace("\\", "/").Trim().TrimEnd('/').TrimStart('/').ToLowerInvariant()

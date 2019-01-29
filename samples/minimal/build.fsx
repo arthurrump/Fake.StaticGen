@@ -6,9 +6,6 @@ nuget Fake.IO.FileSystem
 nuget Fake.Core.Target 
 nuget Fake.StaticGen 1.0.0 //"
 #load "./.fake/build.fsx/intellisense.fsx"
-#if !FAKE
-  #r "Facades/netstandard" // Intellisense fix
-#endif
 
 open Fake.Core
 open Fake.StaticGen
@@ -20,9 +17,11 @@ type Page =
     { Title : string
       Paragraphs : string list }
 
-let parsePage title input =
-    { Title = title
-      Paragraphs = String.split '\n' input }
+let parsePage title url _ input =
+    { Url = url
+      Content = 
+        { Title = title
+          Paragraphs = String.split '\n' input } }
 
 let template (site : StaticSite<SiteConfig, Page>) page =
     sprintf
@@ -43,9 +42,9 @@ let template (site : StaticSite<SiteConfig, Page>) page =
 
 Target.create "Build" <| fun _ ->
     StaticSite.fromConfig { Title = "Fake.StaticGen Minimal Sample" }
-    |> StaticSite.withPageFromSource "/" "content/home.page" (parsePage "Home")
-    |> StaticSite.withPageFromSource "/faq" "content/faq.page" (parsePage "Frequently Asked Questions")
-    |> StaticSite.withFileFromSource "/style.css" "style.css"
+    |> StaticSite.withPageFromSource "content/home.page" (parsePage "Home" "/")
+    |> StaticSite.withPageFromSource "content/faq.page" (parsePage "Frequently Asked Questions" "/faq")
+    |> StaticSite.withFileFromSource "style.css" "/style.css"
     |> StaticSite.generate "public" template
 
 Target.runOrDefault "Build"

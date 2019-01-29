@@ -8,7 +8,7 @@ nuget Giraffe 3.5.1
 nuget Fake.StaticGen 1.0.0 //"
 #load "./.fake/build.fsx/intellisense.fsx"
 #if !FAKE
-  #r "Facades/netstandard" // Intellisense fix
+  #r "Facades/netstandard" // Intellisense fix, see FAKE #1938
 #endif
 
 open Fake.Core
@@ -27,13 +27,20 @@ and Post =
     { Title : string
       Paragraphs : string [] }
 
-module Parsers =
-    let post (input : string) =
-        let lines = input.Split('\n')
-        Post { Title = lines.[0]; Paragraphs = lines |> Array.tail }
+let postUrl (title : string) =
+    "/" + (title.Replace("-", "").Replace(" ", "-").ToLowerInvariant() 
+           |> String.filter (fun c -> (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c = '-'))
 
-    let about (input : string) =
-        About (input.Split('\n'))
+module Parsers =
+    let post _ (input : string) =
+        let lines = input.Split('\n')
+        let content = Post { Title = lines.[0]; Paragraphs = lines |> Array.tail }
+        let url = postUrl lines.[0]
+        { Url = url; Content = content }
+
+    let about _ (input : string) =
+        { Url = "about.html"
+          Content = About (input.Split('\n')) }
 
 let template (site : StaticSite<SiteConfig, PageContent>) page =
     let content title paragraphs =
@@ -71,44 +78,19 @@ let template (site : StaticSite<SiteConfig, PageContent>) page =
             div [ _class "content" ] [ content ] ] ]
     |> renderHtmlDocument
 
-let postOverview pages =
+let postOverview url pages =
     let posts = 
         pages
         |> List.choose (fun page -> match page.Content with Post p -> Some { Url = page.Url; Content = p } | _ -> None)
-    Overview ("Posts", posts)
-
-let postUrl (title : string) =
-    "/" + (title.Replace("-", "").Replace(" ", "-").ToLowerInvariant() 
-           |> String.filter (fun c -> (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c = '-'))
-
-let pageUrl _ page =
-    match page with
-    | About _ -> "/about.html"
-    | Overview ("Posts", _) -> "/"
-    | Overview (title, _) -> "/" + title
-    | Post { Title = title } -> postUrl title // This is the only one that will ever match
+    { Url = url
+      Content = Overview ("Posts", posts) }
 
 Target.create "Build" <| fun _ ->
     StaticSite.fromConfig { Title = "Fake.StaticGen Simple Sample" }
-    |> StaticSite.withPagesFromSources pageUrl (!! "content/*.post") Parsers.post
-    |> StaticSite.withOverviewPage "/" postOverview
-    |> StaticSite.withPageFromSource "/about.html" "content/about.page" Parsers.about
-    |> StaticSite.withFileFromSource "/style.css" "style.css"
+    |> StaticSite.withPagesFromSources (!! "content/*.post") Parsers.post
+    |> StaticSite.withOverviewPage (postOverview "/")
+    |> StaticSite.withPageFromSource "content/about.page" Parsers.about
+    |> StaticSite.withFileFromSource "style.css" "/style.css"
     |> StaticSite.generate "public" template
 
 Target.runOrDefault "Build"
-
-// Weirdnesses:
-// - Due to the parser always returning a 'page, the input to the url function is a 'page,
-//   even though it will always be of type Post, so the url function has redundant cases or
-//   not fully matching.
-//   -> Move the creation of urls to a function passed to the generate function
-//      + All urls in one place
-//        ~ They can also be close together in the main pipeline, so not that much of a benefit
-//      - Urls are further away from the thing they refer to
-//      - Would be hard to do for files, so that makes differences between Pages and Files bigger
-//      - How to get the original file names into the url?
-//   -> Make the parser return the url too
-//      - Feels out of place, that's not what a parser is for
-//   -> Have the parser return useful things and add a wrap function that would put it into 'page
-//      - More functions, might not always apply
