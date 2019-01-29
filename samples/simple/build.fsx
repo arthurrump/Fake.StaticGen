@@ -1,3 +1,5 @@
+// Content for the posts was provided by http://cipsum.com
+
 #r "paket:
 source ../../src/Fake.StaticGen/bin/Debug/
 source https://api.nuget.org/v3/index.json
