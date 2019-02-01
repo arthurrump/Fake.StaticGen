@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RuntimeIdentifiers>win-x86;win-x64;linux-x64;osx-x64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Sass.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpScss" Version="1.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fake.StaticGen\Fake.StaticGen.fsproj" />
+  </ItemGroup>
+
+</Project>

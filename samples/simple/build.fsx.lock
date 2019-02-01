@@ -190,6 +190,7 @@ NUGET
     runtime.native.System (4.3.1)
       Microsoft.NETCore.Platforms (>= 1.1.1)
       Microsoft.NETCore.Targets (>= 1.1.3)
+    SharpScss (1.4)
     System.Buffers (4.5)
     System.Collections (4.3)
       Microsoft.NETCore.Platforms (>= 1.1)
@@ -475,3 +476,8 @@ NUGET
     Fake.StaticGen (1.0.0)
       Fake.IO.Filesystem (>= 5.12)
       FSharp.Core (>= 4.5.2)
+  remote: ..\..\../../src/Fake.StaticGen.Sass/bin/Debug
+    Fake.StaticGen.Sass (1.0.0)
+      Fake.StaticGen (>= 1.0)
+      FSharp.Core (>= 4.5.2)
+      SharpScss (>= 1.4)

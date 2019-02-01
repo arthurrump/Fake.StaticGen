@@ -2,12 +2,14 @@
 
 #r "paket:
 source ../../src/Fake.StaticGen/bin/Debug/
+source ../../src/Fake.StaticGen.Sass/bin/Debug/
 source https://api.nuget.org/v3/index.json
 nuget FSharp.Core 4.5.2 // Locked to be in sync with FAKE runtime
 nuget Fake.IO.FileSystem 
 nuget Fake.Core.Target 
 nuget Giraffe 3.5.1
-nuget Fake.StaticGen 1.0.0 //"
+nuget Fake.StaticGen 1.0.0
+nuget Fake.StaticGen.Sass 1.0.0 //"
 #load "./.fake/build.fsx/intellisense.fsx"
 #if !FAKE
   #r "Facades/netstandard" // Intellisense fix, see FAKE #1938
@@ -16,6 +18,7 @@ nuget Fake.StaticGen 1.0.0 //"
 open Fake.Core
 open Fake.IO.Globbing.Operators
 open Fake.StaticGen
+open Fake.StaticGen.Sass
 open Giraffe.GiraffeViewEngine
 
 type SiteConfig =
@@ -92,7 +95,7 @@ Target.create "Build" <| fun _ ->
     |> StaticSite.withPagesFromSources (!! "content/*.post") Parsers.post
     |> StaticSite.withOverviewPage (postOverview "/")
     |> StaticSite.withPageFromSource "content/about.page" Parsers.about
-    |> StaticSite.withFileFromSource "style.css" "/style.css"
+    |> StaticSite.withSassFile "style.sass" "/style.css"
     |> StaticSite.generate "public" template
 
 Target.runOrDefault "Build"
