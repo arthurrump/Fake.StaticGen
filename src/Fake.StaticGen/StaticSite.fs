@@ -97,16 +97,23 @@ module StaticSite =
         let url = normalizeUrl url
         if url.EndsWith(".html") then url else url.TrimEnd('/') + "/index.html"
 
+    // Dry run generate, returning a list of file paths and contents, instead of writing them out to disk
+    let generateDry outputPath render site =
+        site.Pages
+        |> List.map (fun p ->
+            { Url = pageUrlToFullUrl p.Url
+              Content = p |> render site })
+        |> List.append site.Files
+        |> List.map (fun f ->
+            let url = normalizeUrl f.Url
+            let path = Path.combine outputPath url |> Path.normalizeFileName
+            path, f.Content)
+
     /// Write the site files to the `outputPath`, using the render function to convert the pages into HTML
     let generate outputPath render site =
         Directory.delete outputPath
-        site.Pages
-        |> List.map (fun p -> 
-            { Url = pageUrlToFullUrl p.Url 
-              Content = p |> render site })
-        |> List.append site.Files
-        |> List.iter (fun p -> 
-            let url = normalizeUrl p.Url
-            let path = Path.combine outputPath url |> Path.normalizeFileName
+        site
+        |> generateDry outputPath render
+        |> List.iter (fun (path, content) -> 
             Directory.ensure (Path.getDirectory path)
-            File.writeString false path p.Content)
+            File.writeString false path content)
