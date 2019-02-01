@@ -73,9 +73,17 @@ module StaticSite =
         let page = createOverview site.Pages
         site |> withPages [ page ]
 
-    /// Create multiple (paginated) overview pages based on the list of all pages
+    /// Create multiple overview pages based on the list of all pages
     let withOverviewPages createOverviewPages site =
         site |> withPages (createOverviewPages site.Pages)
+
+    /// Create a paginated overview with a specified number of items per page
+    let withPaginatedOverview itemsPerPage chooser createOverviewPages site =
+        let chunks =
+            site.Pages 
+            |> List.choose chooser
+            |> List.chunkBySize itemsPerPage
+        site |> withPages (createOverviewPages chunks)
 
     /// Create an overview file based on the list of all pages, e.g. an RSS feed
     let withOverviewFile createOverview site =

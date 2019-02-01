@@ -42,18 +42,19 @@ let parsePost (file : string) input =
         Post { Title = lines.Head
                Paragraphs = lines.Tail } }
 
+let postsChooser page = 
+    match page.Content with
+    | Post post -> Some { Url = page.Url; Content = post }
+    | _ -> None
+
 let postsOverview pages =
     let url i = if i = 0 then "/" else sprintf "/posts/%i" i 
-    let chunks =
-        pages 
-        |> List.choose (fun p -> match p.Content with Post post -> Some { Url = p.Url; Content = post } | _ -> None)
-        |> List.chunkBySize 3
-    chunks
+    pages
     |> List.mapi (fun i posts ->
         let content = 
             { Index = i
               Previous = if i = 0 then None else Some (url (i - 1))
-              Next = if i = chunks.Length - 1 then None else Some (url (i + 1))
+              Next = if i = pages.Length - 1 then None else Some (url (i + 1))
               Posts = posts }
         { Url = url i; Content = Overview content })
 
@@ -96,7 +97,7 @@ let template (site : StaticSite<SiteConfig, PageType>) page =
 Target.create "Build" <| fun _ ->
     StaticSite.fromConfig { Title = "Fake.StaticGen Minimal Blog Sample" }
     |> StaticSite.withPagesFromSources (!! "content/*.post") parsePost
-    |> StaticSite.withOverviewPages postsOverview
+    |> StaticSite.withPaginatedOverview 3 postsChooser postsOverview
     |> StaticSite.withFileFromSource "style.css" "/style.css"
     |> StaticSite.generate "public" template
 
