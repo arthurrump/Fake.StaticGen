@@ -1,1 +1,1 @@
-This is a simple sample for Fake.StaticGen, using just the core Fake.StaticGen library and some custom parsers. No fancy markdown, just some files with raw text.
+This is a simple sample for Fake.StaticGen, using just the core Fake.StaticGen library and Giraffe's HTML DSL to define templates. No fancy markdown, just some files with raw text.

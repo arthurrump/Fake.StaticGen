@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\paket-files\giraffe-fsharp\Giraffe\src\Giraffe\GiraffeViewEngine.fs">
+      <Paket>True</Paket>
+      <Link>paket-files/GiraffeViewEngine.fs</Link>
+    </Compile>
+    <Compile Include="Html.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fake.StaticGen\Fake.StaticGen.fsproj" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>
