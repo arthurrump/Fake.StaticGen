@@ -97,7 +97,7 @@ module StaticSite =
         let url = normalizeUrl url
         if url.EndsWith(".html") then url else url.TrimEnd('/') + "/index.html"
 
-    // Dry run generate, returning a list of file paths and contents, instead of writing them out to disk
+    // Dry run generate, returning a map of file paths and contents, instead of writing them out to disk
     let generateDry outputPath render site =
         site.Pages
         |> List.map (fun p ->
@@ -108,12 +108,13 @@ module StaticSite =
             let url = normalizeUrl f.Url
             let path = Path.combine outputPath url |> Path.normalizeFileName
             path, f.Content)
+        |> Map.ofList
 
     /// Write the site files to the `outputPath`, using the render function to convert the pages into HTML
     let generate outputPath render site =
         Directory.delete outputPath
         site
         |> generateDry outputPath render
-        |> List.iter (fun (path, content) -> 
+        |> Map.iter (fun path content -> 
             Directory.ensure (Path.getDirectory path)
             File.writeString false path content)
