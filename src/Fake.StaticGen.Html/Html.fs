@@ -4,7 +4,9 @@ open Fake.StaticGen
 open Giraffe.GiraffeViewEngine
 
 module StaticSite =
-    let generateFromHtml outputPath render =
+    /// Generate the site and write it to the `outputPath` using an HTML 
+    /// template defined with GiraffeViewEngine's HTML DSL
+    let generateFromHtml outputPath template =
         let renderFromHtml site page =
-            render site page |> renderHtmlDocument
+            template site page |> renderHtmlDocument
         StaticSite.generate outputPath renderFromHtml
