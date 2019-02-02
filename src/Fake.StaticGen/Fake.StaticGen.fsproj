@@ -8,7 +8,6 @@
     <Compile Include="StaticSite.fs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Fake.IO.Filesystem" Version="5.12.0" />
-  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  
 </Project>

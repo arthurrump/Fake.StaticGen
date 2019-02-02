@@ -1,0 +1,15 @@
+storage: none
+framework: netstandard2.0
+
+source https://www.nuget.org/api/v2
+
+nuget Fake.IO.Filesystem ~> 5.8
+github giraffe-fsharp/Giraffe src/Giraffe/GiraffeViewEngine.fs
+
+group Samples
+    storage: none
+    framework: netstandard2.0
+    
+    source https://www.nuget.org/api/v2
+
+    nuget Fake.Core.Target ~> 5.12
