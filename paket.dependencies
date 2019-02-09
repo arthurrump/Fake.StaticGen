@@ -3,6 +3,7 @@ framework: netstandard2.0
 
 source https://www.nuget.org/api/v2
 
+nuget FSharp.Core 4.5.2
 nuget Fake.IO.Filesystem ~> 5.8
 github giraffe-fsharp/Giraffe src/Giraffe/GiraffeViewEngine.fs
 
