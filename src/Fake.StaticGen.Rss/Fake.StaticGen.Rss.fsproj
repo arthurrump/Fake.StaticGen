@@ -1,12 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Rss.fs" />
+    <ProjectReference Include="..\Fake.StaticGen\Fake.StaticGen.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Fake.StaticGen\Fake.StaticGen.fsproj" />
+    <Compile Include="XmlEngine.fs" />
+    <Compile Include="Rss.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
