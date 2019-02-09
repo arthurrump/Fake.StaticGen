@@ -17,7 +17,7 @@ NUGET
       Fake.Core.FakeVar (>= 5.12)
       Fake.Core.String (>= 5.12)
       Fake.Core.Trace (>= 5.12)
-      Fake.IO.Filesystem (>= 5.12)
+      Fake.IO.FileSystem (>= 5.12)
       FSharp.Core (>= 4.3.4)
       System.Diagnostics.Process (>= 4.3)
     Fake.Core.String (5.12)
@@ -37,7 +37,7 @@ NUGET
       Fake.Core.Environment (>= 5.12)
       Fake.Core.FakeVar (>= 5.12)
       FSharp.Core (>= 4.3.4)
-    Fake.IO.Filesystem (5.12)
+    Fake.IO.FileSystem (5.12)
       Fake.Core.String (>= 5.12)
       FSharp.Core (>= 4.3.4)
       System.Diagnostics.FileVersionInfo (>= 4.3)
@@ -251,8 +251,13 @@ NUGET
       Newtonsoft.Json (>= 11.0.2)
   remote: ..\..\../../src/Fake.StaticGen/bin/Debug
     Fake.StaticGen (1.0.0)
-      Fake.IO.Filesystem (>= 5.12)
+      Fake.IO.FileSystem (>= 5.12)
       FSharp.Core (>= 4.5.2)
   remote: ..\..\../../src/Fake.StaticGen.Html/bin/Debug
     Fake.StaticGen.Html (1.0.0)
       Fake.StaticGen (>= 1.0)
+      FSharp.Core (>= 4.5.2)
+  remote: ..\..\../../src/Fake.StaticGen.Rss/bin/Debug
+    Fake.StaticGen.Rss (1.0.0)
+      Fake.StaticGen (>= 1.0)
+      FSharp.Core (>= 4.5.2)

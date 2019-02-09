@@ -1,6 +1,7 @@
 #r "paket:
 source ../../src/Fake.StaticGen/bin/Debug/
 source ../../src/Fake.StaticGen.Html/bin/Debug/
+source ../../src/Fake.StaticGen.Rss/bin/Debug/
 source https://api.nuget.org/v3/index.json
 nuget FSharp.Core 4.5.2 // Locked to be in sync with FAKE runtime
 nuget Fake.IO.FileSystem 
@@ -8,7 +9,8 @@ nuget Fake.Core.Target
 nuget Thoth.Json.Net
 nuget Markdig
 nuget Fake.StaticGen 1.0.0
-nuget Fake.StaticGen.Html 1.0.0 //"
+nuget Fake.StaticGen.Html 1.0.0
+nuget Fake.StaticGen.Rss 1.0.0 //"
 #load "./.fake/build.fsx/intellisense.fsx"
 #if !FAKE
   #r "Facades/netstandard" // Intellisense fix, see FAKE #1938
@@ -22,6 +24,7 @@ open Fake.Core
 open Fake.IO.Globbing.Operators
 open Fake.StaticGen
 open Fake.StaticGen.Html
+open Fake.StaticGen.Rss
 open Giraffe.GiraffeViewEngine
 open Thoth.Json.Net
 open Markdig
@@ -64,10 +67,27 @@ let postsOverview pages =
               Pages = posts }
         { Url = postOverviewUrl i; Content = PostOverview content })
 
+let postsRss (site : StaticSite<SiteConfig, PageType>) =
+    let posts = site.Pages |> List.choose postsChooser
+    Rss.Channel(
+        title = site.Config.Title,
+        link = "example.com",
+        description = site.Config.Title,
+        managingEditor = site.Config.Author,
+        generator = "Fake.StaticGen",
+        items = [
+            for post in posts ->
+                Rss.Item(
+                    title = post.Content.Title,
+                    link = post.Url,
+                    guid = Rss.Guid(post.Url, true))
+        ])
+
 Target.create "Build" <| fun _ ->
     StaticSite.fromConfigFile "content/config.json" decodeConfig
     |> StaticSite.withPagesFromSources (!! "content/posts/*.md") parsePost
     |> StaticSite.withPaginatedOverview 3 postsChooser postsOverview
+    |> StaticSite.withRssFeed postsRss "/rss.xml"
     |> StaticSite.generateFromHtml "public" Layout.layout 
 
 Target.runOrDefault "Build"
