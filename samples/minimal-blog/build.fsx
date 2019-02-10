@@ -12,6 +12,7 @@ nuget Fake.StaticGen 1.0.0 //"
   #r "Facades/netstandard" // Intellisense fix, see FAKE #1938
 #endif
 
+open System.IO
 open Fake.Core
 open Fake.IO.Globbing.Operators
 open Fake.StaticGen
@@ -33,10 +34,7 @@ and Overview =
 
 let parsePost (file : string) input =
     let lines = String.split '\n' input
-    let file = file.Replace('\\', '/')
-    let url = file.Substring(match file.LastIndexOf('/') with -1 -> 0 | i -> i)
-    let url = url.Substring(0, url.Length - ".post".Length)
-    printfn "Post: %s -> %s" file url
+    let url = Path.GetFileNameWithoutExtension file
     { Url = url
       Content = 
         Post { Title = lines.Head
