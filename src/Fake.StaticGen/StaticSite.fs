@@ -2,25 +2,51 @@
 
 open Fake.IO
 
+[<AutoOpen>]
+module private UrlHelpers =
+    let normalizeUrl (url : string) =
+        url.Replace("\\", "/").Trim().TrimEnd('/').TrimStart('/').ToLowerInvariant()
+
+    let pageUrlToFilePath (url : string) =
+        let url = normalizeUrl url
+        if System.IO.Path.HasExtension url then url else url + "/index.html"
+
 type Page<'content> =
     { Url : string
       Content : 'content }
 
 type StaticSite<'config, 'content> =
-    { Config : 'config
+    { BaseUrl : string
+      Config : 'config
       Pages : Page<'content> list
       Files : Page<string> list }
 
+    member this.AbsoluteUrl relativeUrl =
+        this.BaseUrl + "/" + (normalizeUrl relativeUrl)
+
+type ISiteConfig =
+    abstract member BaseUrl : string
+
 module StaticSite =
-    /// Create a new site with some configuration
-    let fromConfig config =
-        { Config = config 
-          Pages = []
+    /// Create a new site with a base url and some configuration
+    let fromConfig baseUrl config =
+        { BaseUrl = normalizeUrl baseUrl
+          Config = config
+          Pages = [] 
           Files = [] }
+
+    /// Create a new site with a base url and some configuration parsed from a source file
+    let fromConfigFile baseUrl filePath parse =
+        filePath |> File.readAsString |> parse |> fromConfig baseUrl
+
+    /// Create a new site with some configuration that includes the BaseUrl
+    let fromIConfig (config : #ISiteConfig) =
+        fromConfig config.BaseUrl config
     
-    /// Create a new site with some configuration parsed from a source file
-    let fromConfigFile filePath parse =
-        filePath |> File.readAsString |> parse |> fromConfig
+    /// Create a new site with some configuration that includes the BaseUrl 
+    /// parsed from a source file
+    let fromIConfigFile filePath parse =
+        filePath |> File.readAsString |> parse |> fromIConfig
 
     /// Add a new page
     let withPage content url site =
@@ -90,18 +116,11 @@ module StaticSite =
         let file = createOverview site.Pages
         site |> withFiles [ file ]
 
-    let private normalizeUrl (url : string) =
-        url.Replace("\\", "/").Trim().TrimEnd('/').TrimStart('/').ToLowerInvariant()
-
-    let private pageUrlToFullUrl (url : string) =
-        let url = normalizeUrl url
-        if url.EndsWith(".html") then url else url.TrimEnd('/') + "/index.html"
-
     // Dry run generate, returning a map of file paths and contents, instead of writing them out to disk
     let generateDry outputPath render site =
         site.Pages
         |> List.map (fun p ->
-            { Url = pageUrlToFullUrl p.Url
+            { Url = pageUrlToFilePath p.Url
               Content = p |> render site })
         |> List.append site.Files
         |> List.map (fun f ->
