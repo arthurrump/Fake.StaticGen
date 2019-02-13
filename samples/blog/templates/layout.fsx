@@ -41,6 +41,7 @@ let layout site page =
             link [ _rel "stylesheet"; _href "/style.css" ]
             meta [ _name "generator"; _content "Fake.StaticGen" ]
             meta [ _name "viewport"; _content "width=device-width, initial-scale=1" ]
+            link [ _rel "canonical"; _content (site.AbsoluteUrl page.Url) ]
         ]
         body [] [
             header [] [

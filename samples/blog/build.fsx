@@ -71,7 +71,7 @@ let postsRss (site : StaticSite<SiteConfig, PageType>) =
     let posts = site.Pages |> List.choose postsChooser
     Rss.Channel(
         title = site.Config.Title,
-        link = "example.com",
+        link = site.BaseUrl,
         description = site.Config.Title,
         managingEditor = site.Config.Author,
         generator = "Fake.StaticGen",
@@ -79,12 +79,12 @@ let postsRss (site : StaticSite<SiteConfig, PageType>) =
             for post in posts ->
                 Rss.Item(
                     title = post.Content.Title,
-                    link = post.Url,
-                    guid = Rss.Guid(post.Url, true))
+                    link = site.AbsoluteUrl post.Url,
+                    guid = Rss.Guid(site.AbsoluteUrl post.Url, true))
         ])
 
 Target.create "Build" <| fun _ ->
-    StaticSite.fromConfigFile "content/config.json" decodeConfig
+    StaticSite.fromConfigFile "https://example.com" "content/config.json" decodeConfig
     |> StaticSite.withPagesFromSources (!! "content/posts/*.md") parsePost
     |> StaticSite.withPaginatedOverview 3 postsChooser postsOverview
     |> StaticSite.withRssFeed postsRss "/rss.xml"
