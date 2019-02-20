@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>Adds the ability to write templates for your Fake.StaticGen site with the GiraffeViewEngine.</Description>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\paket-files\giraffe-fsharp\Giraffe\src\Giraffe\GiraffeViewEngine.fs">

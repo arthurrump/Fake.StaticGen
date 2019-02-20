@@ -1,7 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>Provides a DSL to create an RSS feed for your Fake.StaticGen site in F#.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fake.StaticGen\Fake.StaticGen.fsproj" />

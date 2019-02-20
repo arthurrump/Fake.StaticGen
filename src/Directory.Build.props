@@ -1,0 +1,10 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="PackageInfo">
+    <Authors>Arthur Rump</Authors>
+    <Copyright>Copyright (c) 2019, Arthur Rump</Copyright>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/arthurrump/Fake.StaticGen</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/arthurrump/Fake.StaticGen</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/arthurrump/Fake.StaticGen/blob/master/LICENSE</PackageLicenseUrl>
+  </PropertyGroup>
+</Project>
