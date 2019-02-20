@@ -7,6 +7,9 @@ module private UrlHelpers =
     let normalizeUrl (url : string) =
         url.Replace("\\", "/").Trim().TrimEnd('/').TrimStart('/').ToLowerInvariant()
 
+    let normalizeRelativeUrl url =
+        "/" + (normalizeUrl url)
+
     let pageUrlToFilePath (url : string) =
         let url = normalizeUrl url
         if System.IO.Path.HasExtension url then url else url + "/index.html"
@@ -50,11 +53,12 @@ module StaticSite =
 
     /// Add a new page
     let withPage content url site =
-        let page = { Url = url; Content = content }
+        let page = { Url = normalizeRelativeUrl url; Content = content }
         { site with Pages = page::site.Pages }
 
     /// Add multiple pages
     let withPages pages site =
+        let pages = pages |> List.map (fun p -> { p with Url = normalizeRelativeUrl p.Url })
         { site with Pages = List.append pages site.Pages }
 
     /// Parse a source file and add it as a page
@@ -72,11 +76,12 @@ module StaticSite =
 
     /// Add a file
     let withFile content url site =
-        let file = { Url = url; Content = content }
+        let file = { Url = normalizeRelativeUrl url; Content = content }
         { site with Files = file::site.Files }
 
     /// Add multiple files
     let withFiles files site =
+        let files = files |> List.map (fun f -> { f with Url = normalizeRelativeUrl f.Url })
         { site with Files = List.append files site.Files }
 
     /// Copy a source file
