@@ -41,7 +41,7 @@ let template (site : StaticSite<SiteConfig, Page>) page =
         (page.Content.Paragraphs |> List.map (sprintf "<p>%s</p>") |> String.concat "\n")
 
 Target.create "Build" <| fun _ ->
-    StaticSite.fromConfig { Title = "Fake.StaticGen Minimal Sample" }
+    StaticSite.fromConfig "http://localhost:8080" { Title = "Fake.StaticGen Minimal Sample" }
     |> StaticSite.withPageFromSource "content/home.page" (parsePage "Home" "/")
     |> StaticSite.withPageFromSource "content/faq.page" (parsePage "Frequently Asked Questions" "/faq")
     |> StaticSite.withFileFromSource "style.css" "/style.css"

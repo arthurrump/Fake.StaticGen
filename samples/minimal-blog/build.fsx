@@ -10,6 +10,7 @@ nuget Fake.StaticGen 1.0.0 //"
 #load "./.fake/build.fsx/intellisense.fsx"
 #if !FAKE
   #r "Facades/netstandard" // Intellisense fix, see FAKE #1938
+  #r "netstandard"
 #endif
 
 open System.IO
@@ -93,7 +94,7 @@ let template (site : StaticSite<SiteConfig, PageType>) page =
         content
 
 Target.create "Build" <| fun _ ->
-    StaticSite.fromConfig { Title = "Fake.StaticGen Minimal Blog Sample" }
+    StaticSite.fromConfig "http://localhost:8080" { Title = "Fake.StaticGen Minimal Blog Sample" }
     |> StaticSite.withPagesFromSources (!! "content/*.post") parsePost
     |> StaticSite.withPaginatedOverview 3 postsChooser postsOverview
     |> StaticSite.withFileFromSource "style.css" "/style.css"

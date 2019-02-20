@@ -12,6 +12,7 @@ nuget Fake.StaticGen.Html 1.0.0 //"
 #load "./.fake/build.fsx/intellisense.fsx"
 #if !FAKE
   #r "Facades/netstandard" // Intellisense fix, see FAKE #1938
+  #r "netstandard"
 #endif
 
 open Fake.Core
@@ -89,7 +90,7 @@ let postOverview url pages =
       Content = Overview ("Posts", posts) }
 
 Target.create "Build" <| fun _ ->
-    StaticSite.fromConfig { Title = "Fake.StaticGen Simple Sample" }
+    StaticSite.fromConfig "http://localhost:8080" { Title = "Fake.StaticGen Simple Sample" }
     |> StaticSite.withPagesFromSources (!! "content/*.post") Parsers.post
     |> StaticSite.withOverviewPage (postOverview "/")
     |> StaticSite.withPageFromSource "content/about.page" Parsers.about
