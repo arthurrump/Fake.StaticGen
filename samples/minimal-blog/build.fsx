@@ -81,7 +81,8 @@ let template (site : StaticSite<SiteConfig, PageType>) page =
     sprintf
         """
         <!DOCTYPE html>
-        <html><head><title>%s</title><link rel="stylesheet" href="/style.css"></head>
+        <html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                    <title>%s</title><link rel="stylesheet" href="/style.css"></head>
         <body>
             <h1>%s</h1>
             <hr/>
