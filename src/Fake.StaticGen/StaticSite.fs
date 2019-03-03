@@ -1,6 +1,7 @@
 ﻿namespace Fake.StaticGen
 
 open Fake.IO
+open System.IO
 
 [<AutoOpen>]
 module private UrlHelpers =
@@ -14,9 +15,23 @@ module private UrlHelpers =
         let url = normalizeUrl url
         if System.IO.Path.HasExtension url then url else url + "/index.html"
 
+/// Function that takes the source file name and its contents and returns the parsed content and the url
+type PageParser<'content> = string -> string -> ('content * string)
+
 type Page<'content> =
-    { Url : string
-      Content : 'content }
+    | FromSource of sourceFile : string * parser : PageParser<'content>
+    | FromValue of content : 'content * url : string
+
+    member this.Content = 
+        match this with
+        | FromSource (source, parser) -> File.readAsString source |> parser source |> fst
+        | FromValue (content, _) -> content
+
+    member this.Url =
+        match this with
+        | FromSource (source, parser) -> File.readAsString source |> parser source |> snd
+        | FromValue (_, url) -> url
+        |> normalizeRelativeUrl
 
 type StaticSite<'config, 'content> =
     { BaseUrl : string
@@ -53,60 +68,62 @@ module StaticSite =
 
     /// Add a new page
     let withPage content url site =
-        let page = { Url = normalizeRelativeUrl url; Content = content }
+        let page = Page.FromValue (content, normalizeRelativeUrl url)
         { site with Pages = page::site.Pages }
 
     /// Add multiple pages
     let withPages pages site =
-        let pages = pages |> List.map (fun p -> { p with Url = normalizeRelativeUrl p.Url })
         { site with Pages = List.append pages site.Pages }
 
     /// Parse a source file and add it as a page
     let withPageFromSource sourceFile parse site =
-        let page = File.readAsString sourceFile |> parse sourceFile
+        let page = Page.FromSource (sourceFile, parse)
         site |> withPages [ page ]
 
     /// Parse multiple source files and add them as pages
     let withPagesFromSources (sourceFiles : #seq<string>) parse site =
         let pages = 
             sourceFiles
-            |> Seq.map (fun path -> path |> File.readAsString |> parse path)
+            |> Seq.map (fun path -> Page.FromSource (path, parse))
             |> Seq.toList
         site |> withPages pages
 
     /// Add a file
     let withFile content url site =
-        let file = { Url = normalizeRelativeUrl url; Content = content }
+        let file = Page.FromValue (content, normalizeRelativeUrl url)
         { site with Files = file::site.Files }
 
     /// Add multiple files
     let withFiles files site =
-        let files = files |> List.map (fun f -> { f with Url = normalizeRelativeUrl f.Url })
         { site with Files = List.append files site.Files }
+
+    let private fileParser url : PageParser<string> =
+        fun _ content -> (content, url)
 
     /// Copy a source file
     let withFileFromSource sourceFile url site =
-        site |> withFile (File.readAsString sourceFile) url
+        site |> withFiles [ Page.FromSource (sourceFile, fileParser url) ]
 
     /// Copy multiple source files
     let withFilesFromSources (sourceFiles : #seq<string>) urlMapper site =
         let files = 
             sourceFiles 
-            |> Seq.map (fun path -> 
-                let content = path |> File.readAsString
-                { Url = urlMapper path
-                  Content = content })
+            |> Seq.map (fun path -> Page.FromSource (path, fileParser (urlMapper path)))
             |> Seq.toList
         site |> withFiles files
 
     /// Create an overview page based on the list of all pages
     let withOverviewPage createOverview site =
-        let page = createOverview site.Pages
-        site |> withPages [ page ]
+        let content, url = createOverview site
+        site |> withPage content url
 
     /// Create multiple overview pages based on the list of all pages
     let withOverviewPages createOverviewPages site =
-        site |> withPages (createOverviewPages site.Pages)
+        let pages = 
+            createOverviewPages site
+            |> Seq.map (fun (content, url) -> Page.FromValue (content, url))
+            |> Seq.toList
+        site |> withPages pages
 
     /// Create a paginated overview with a specified number of items per page
     let withPaginatedOverview itemsPerPage chooser createOverviewPages site =
@@ -118,20 +135,20 @@ module StaticSite =
 
     /// Create an overview file based on the list of all pages, e.g. an RSS feed
     let withOverviewFile createOverview site =
-        let file = createOverview site.Pages
-        site |> withFiles [ file ]
+        let content, url = createOverview site
+        site |> withFile content url
 
     // Dry run generate, returning a map of file paths and contents, instead of writing them out to disk
     let generateDry outputPath render site =
         site.Pages
         |> List.map (fun p ->
-            { Url = pageUrlToFilePath p.Url
-              Content = p |> render site })
-        |> List.append site.Files
-        |> List.map (fun f ->
-            let url = normalizeUrl f.Url
+            pageUrlToFilePath p.Url,
+            p |> render site)
+        |> List.append (site.Files |> List.map (fun p -> pageUrlToFilePath p.Url, p.Content))
+        |> List.map (fun (url, content) ->
+            let url = normalizeUrl url
             let path = Path.combine outputPath url |> Path.normalizeFileName
-            path, f.Content)
+            path, content)
         |> Map.ofList
 
     /// Write the site files to the `outputPath`, using the render function to convert the pages into HTML
