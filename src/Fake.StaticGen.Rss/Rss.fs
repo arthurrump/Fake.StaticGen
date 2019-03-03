@@ -234,6 +234,7 @@ module StaticSite =
 
     /// Add an RSS feed with a function that takes the site and returns an RSS Channel object
     let withRssFeed createChannel url site =
-        let channel = createChannel site
-        let file = { Url = url; Content = channel |> Rss.renderFeed }
-        site |> StaticSite.withFiles [ file ]
+        site 
+        |> StaticSite.withOverviewFile (fun site ->
+            { Url = url
+              Content = createChannel site |> Rss.renderFeed })

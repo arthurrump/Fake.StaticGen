@@ -101,12 +101,13 @@ module StaticSite =
 
     /// Create an overview page based on the list of all pages
     let withOverviewPage createOverview site =
-        let page = createOverview site.Pages
+        let page = createOverview site
         site |> withPages [ page ]
 
     /// Create multiple overview pages based on the list of all pages
     let withOverviewPages createOverviewPages site =
-        site |> withPages (createOverviewPages site.Pages)
+        let pages = createOverviewPages site
+        site |> withPages pages
 
     /// Create a paginated overview with a specified number of items per page
     let withPaginatedOverview itemsPerPage chooser createOverviewPages site =
@@ -118,7 +119,7 @@ module StaticSite =
 
     /// Create an overview file based on the list of all pages, e.g. an RSS feed
     let withOverviewFile createOverview site =
-        let file = createOverview site.Pages
+        let file = createOverview site
         site |> withFiles [ file ]
 
     // Dry run generate, returning a map of file paths and contents, instead of writing them out to disk

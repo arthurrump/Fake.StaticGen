@@ -82,9 +82,9 @@ let template (site : StaticSite<SiteConfig, PageContent>) page =
                 a [ _href "/about.html" ] [ str "About" ] ]
             div [ _class "content" ] [ content ] ] ]
 
-let postOverview url pages =
+let postOverview url site =
     let posts = 
-        pages
+        site.Pages
         |> List.choose (fun page -> match page.Content with Post p -> Some { Url = page.Url; Content = p } | _ -> None)
     { Url = url
       Content = Overview ("Posts", posts) }
