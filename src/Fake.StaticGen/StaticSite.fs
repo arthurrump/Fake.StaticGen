@@ -64,12 +64,6 @@ module StaticSite =
         let page = { Url = normalizeRelativeUrl url; Content = content }
         site |> withPages [ page ]
 
-    /// Parse a source file and add it as a page
-    let withPageFromSource sourceFile parse site =
-        Trace.tracefn "Reading %s" (Path.toRelativeFromCurrent sourceFile)
-        let page = File.readAsString sourceFile |> parse sourceFile
-        site |> withPages [ page ]
-
     /// Parse multiple source files and add them as pages
     let withPagesFromSources sourceFiles parse site =
         let pages = 
@@ -78,6 +72,10 @@ module StaticSite =
                 Trace.tracefn "Reading %s" (Path.toRelativeFromCurrent path)
                 path |> File.readAsString |> parse path)
         site |> withPages pages
+
+    /// Parse a source file and add it as a page
+    let withPageFromSource sourceFile parse site =
+        site |> withPagesFromSources [ sourceFile ] parse
 
     /// Add multiple files
     let withFiles files site =
@@ -88,11 +86,6 @@ module StaticSite =
     let withFile content url site =
         let file = { Url = normalizeRelativeUrl url; Content = content }
         site |> withFiles [ file ]
-
-    /// Copy a source file
-    let withFileFromSource sourceFile url site =
-        Trace.tracefn "Reading %s" (Path.toRelativeFromCurrent sourceFile)
-        site |> withFile (File.readAsString sourceFile) url
 
     /// Copy multiple source files
     let withFilesFromSources sourceFiles urlMapper site =
@@ -105,28 +98,34 @@ module StaticSite =
                   Content = content })
         site |> withFiles files
 
+    /// Copy a source file
+    let withFileFromSource sourceFile url site =
+        site |> withFilesFromSources [ sourceFile ] (fun _ -> url)
+
     /// Create an overview page based on the list of all pages
     let withOverviewPage createOverview site =
-        let page = createOverview site
-        site |> withPages [ page ]
+        let overview = Seq.delay (fun _ -> seq [ createOverview site ])
+        site |> withPages overview
 
     /// Create multiple overview pages based on the list of all pages
     let withOverviewPages createOverviewPages site =
-        let pages = createOverviewPages site
-        site |> withPages pages
+        let overview = Seq.delay (fun _ -> createOverviewPages site)
+        site |> withPages overview
 
     /// Create a paginated overview with a specified number of items per page
     let withPaginatedOverview itemsPerPage chooser createOverviewPages site =
-        let chunks =
-            site.Pages 
-            |> Seq.choose chooser
-            |> Seq.chunkBySize itemsPerPage
-        site |> withPages (createOverviewPages chunks)
+        let overview = 
+            Seq.delay (fun _ -> 
+                site.Pages 
+                |> Seq.choose chooser
+                |> Seq.chunkBySize itemsPerPage
+                |> createOverviewPages)
+        site |> withPages overview
 
     /// Create an overview file based on the list of all pages, e.g. an RSS feed
     let withOverviewFile createOverview site =
-        let file = createOverview site
-        site |> withFiles [ file ]
+        let file = Seq.delay (fun _ -> seq [ createOverview site ])
+        site |> withFiles file
 
     // Dry run generate, returning a map of file paths and contents, instead of writing them out to disk
     let generateDry outputPath render site =
