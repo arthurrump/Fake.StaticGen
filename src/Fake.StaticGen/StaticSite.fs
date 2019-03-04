@@ -36,7 +36,7 @@ module StaticSite =
     let fromConfig baseUrl config =
         { BaseUrl = normalizeUrl baseUrl
           Config = config
-          Pages = Seq.empty 
+          Pages = Seq.empty
           Files = Seq.empty }
 
     /// Create a new site with a base url and some configuration parsed from a source file
@@ -54,15 +54,15 @@ module StaticSite =
         Trace.tracefn "Reading %s" (Path.toRelativeFromCurrent filePath)
         filePath |> File.readAsString |> parse |> fromIConfig
 
-    /// Add a new page
-    let withPage content url site =
-        let page = { Url = normalizeRelativeUrl url; Content = content }
-        { site with Pages = Seq.append site.Pages [ page ] }
-
     /// Add multiple pages
     let withPages pages site =
         let pages = pages |> Seq.map (fun p -> { p with Url = normalizeRelativeUrl p.Url })
-        { site with Pages = Seq.append pages site.Pages }
+        { site with Pages = Seq.append pages site.Pages |> Seq.cache }
+
+    /// Add a new page
+    let withPage content url site =
+        let page = { Url = normalizeRelativeUrl url; Content = content }
+        site |> withPages [ page ]
 
     /// Parse a source file and add it as a page
     let withPageFromSource sourceFile parse site =
@@ -79,15 +79,15 @@ module StaticSite =
                 path |> File.readAsString |> parse path)
         site |> withPages pages
 
-    /// Add a file
-    let withFile content url site =
-        let file = { Url = normalizeRelativeUrl url; Content = content }
-        { site with Files = Seq.append site.Files [ file ] }
-
     /// Add multiple files
     let withFiles files site =
         let files = files |> Seq.map (fun f -> { f with Url = normalizeRelativeUrl f.Url })
-        { site with Files = Seq.append files site.Files }
+        { site with Files = Seq.append files site.Files |> Seq.cache }
+
+    /// Add a file
+    let withFile content url site =
+        let file = { Url = normalizeRelativeUrl url; Content = content }
+        site |> withFiles [ file ]
 
     /// Copy a source file
     let withFileFromSource sourceFile url site =
