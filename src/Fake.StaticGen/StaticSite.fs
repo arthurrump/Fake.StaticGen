@@ -41,7 +41,7 @@ module StaticSite =
 
     /// Create a new site with a base url and some configuration parsed from a source file
     let fromConfigFile baseUrl filePath parse =
-        printfn "Reading %s" (Path.toRelativeFromCurrent filePath)
+        Trace.tracefn "Reading %s" (Path.toRelativeFromCurrent filePath)
         filePath |> File.readAsString |> parse |> fromConfig baseUrl
 
     /// Create a new site with some configuration that includes the BaseUrl
@@ -51,7 +51,7 @@ module StaticSite =
     /// Create a new site with some configuration that includes the BaseUrl 
     /// parsed from a source file
     let fromIConfigFile filePath parse =
-        printfn "Reading %s" (Path.toRelativeFromCurrent filePath)
+        Trace.tracefn "Reading %s" (Path.toRelativeFromCurrent filePath)
         filePath |> File.readAsString |> parse |> fromIConfig
 
     /// Add a new page
@@ -66,7 +66,7 @@ module StaticSite =
 
     /// Parse a source file and add it as a page
     let withPageFromSource sourceFile parse site =
-        printfn "Reading %s" (Path.toRelativeFromCurrent sourceFile)
+        Trace.tracefn "Reading %s" (Path.toRelativeFromCurrent sourceFile)
         let page = File.readAsString sourceFile |> parse sourceFile
         site |> withPages [ page ]
 
@@ -75,7 +75,7 @@ module StaticSite =
         let pages = 
             sourceFiles 
             |> Seq.map (fun path -> 
-                printfn "Reading %s" (Path.toRelativeFromCurrent path)
+                Trace.tracefn "Reading %s" (Path.toRelativeFromCurrent path)
                 path |> File.readAsString |> parse path)
         site |> withPages pages
 
@@ -91,7 +91,7 @@ module StaticSite =
 
     /// Copy a source file
     let withFileFromSource sourceFile url site =
-        printfn "Reading %s" (Path.toRelativeFromCurrent sourceFile)
+        Trace.tracefn "Reading %s" (Path.toRelativeFromCurrent sourceFile)
         site |> withFile (File.readAsString sourceFile) url
 
     /// Copy multiple source files
@@ -99,7 +99,7 @@ module StaticSite =
         let files = 
             sourceFiles 
             |> Seq.map (fun path -> 
-                printfn "Reading %s" (Path.toRelativeFromCurrent path)
+                Trace.tracefn "Reading %s" (Path.toRelativeFromCurrent path)
                 let content = path |> File.readAsString
                 { Url = urlMapper path
                   Content = content })
@@ -146,6 +146,6 @@ module StaticSite =
         site
         |> generateDry outputPath render
         |> Seq.iter (fun (path, content) -> 
-            printfn "Writing %s" (Path.toRelativeFromCurrent path) // TODO: use Fake.Core.Trace
+            Trace.tracefn "Writing %s" (Path.toRelativeFromCurrent path)
             Directory.ensure (Path.getDirectory path)
             File.writeString false path content)

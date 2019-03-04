@@ -2,7 +2,18 @@ STORAGE: NONE
 RESTRICTION: == netstandard2.0
 NUGET
   remote: https://www.nuget.org/api/v2
+    Fake.Core.Context (5.12.4)
+      FSharp.Core (>= 4.3.4)
+    Fake.Core.Environment (5.12.4)
+      FSharp.Core (>= 4.3.4)
+    Fake.Core.FakeVar (5.12.4)
+      Fake.Core.Context (>= 5.12.4)
+      FSharp.Core (>= 4.3.4)
     Fake.Core.String (5.12)
+      FSharp.Core (>= 4.3.4)
+    Fake.Core.Trace (5.12.4)
+      Fake.Core.Environment (>= 5.12.4)
+      Fake.Core.FakeVar (>= 5.12.4)
       FSharp.Core (>= 4.3.4)
     Fake.IO.FileSystem (5.12)
       Fake.Core.String (>= 5.12)
@@ -128,7 +139,7 @@ NUGET
       System.Runtime (>= 4.3)
 GITHUB
   remote: giraffe-fsharp/Giraffe
-    src/Giraffe/GiraffeViewEngine.fs (bdc02592cb23f6d63c188e603d2050b9e688f270)
+    src/Giraffe/GiraffeViewEngine.fs (c9e135d7c26d6418ac3eb7e1f2ab5b949ad08a7d)
 GROUP Samples
 STORAGE: NONE
 RESTRICTION: == netstandard2.0

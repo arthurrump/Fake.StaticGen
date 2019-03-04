@@ -1,2 +1,3 @@
 FSharp.Core
+Fake.Core.Trace
 Fake.IO.Filesystem
