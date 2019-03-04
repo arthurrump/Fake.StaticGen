@@ -66,7 +66,7 @@ and Overview<'t> =
     { Index : int
       PreviousUrl : string option
       NextUrl : string option
-      Pages : Page<'t> list }
+      Pages : Page<'t> seq }
 
 //          Posts
 // =======================
@@ -223,16 +223,16 @@ let parsePost path (input : string) =
 
 let postsOverview pages =
     pages
-    |> List.mapi (fun i posts ->
+    |> Seq.mapi (fun i posts ->
         let content = 
             { Index = i
               PreviousUrl = if i = 0 then None else Some (postOverviewUrl (i - 1))
-              NextUrl = if i = pages.Length - 1 then None else Some (postOverviewUrl (i + 1))
+              NextUrl = if i = Seq.length pages - 1 then None else Some (postOverviewUrl (i + 1))
               Pages = posts }
         { Url = postOverviewUrl i; Content = PostOverview content })
 
 let postsRss (site : StaticSite<SiteConfig, PageType>) =
-    let posts = site.Pages |> List.choose postsChooser
+    let posts = site.Pages |> Seq.choose postsChooser
     Rss.Channel(
         title = site.Config.Title,
         link = site.BaseUrl,

@@ -26,7 +26,7 @@ type SiteConfig =
 
 type PageContent =
     | About of paragraphs : string []
-    | Overview of title : string * Page<Post> list
+    | Overview of title : string * Page<Post> seq
     | Post of Post
 and Post =
     { Title : string
@@ -85,7 +85,7 @@ let template (site : StaticSite<SiteConfig, PageContent>) page =
 let postOverview url site =
     let posts = 
         site.Pages
-        |> List.choose (fun page -> match page.Content with Post p -> Some { Url = page.Url; Content = p } | _ -> None)
+        |> Seq.choose (fun page -> match page.Content with Post p -> Some { Url = page.Url; Content = p } | _ -> None)
     { Url = url
       Content = Overview ("Posts", posts) }
 

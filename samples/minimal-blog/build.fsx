@@ -31,7 +31,7 @@ and Overview =
     { Index : int
       Previous : string option
       Next : string option
-      Posts : Page<Post> list }
+      Posts : Page<Post> seq }
 
 let parsePost (file : string) input =
     let lines = String.split '\n' input
@@ -49,11 +49,11 @@ let postsChooser page =
 let postsOverview pages =
     let url i = if i = 0 then "/" else sprintf "/posts/%i" i 
     pages
-    |> List.mapi (fun i posts ->
+    |> Seq.mapi (fun i posts ->
         let content = 
             { Index = i
               Previous = if i = 0 then None else Some (url (i - 1))
-              Next = if i = pages.Length - 1 then None else Some (url (i + 1))
+              Next = if i = Seq.length pages - 1 then None else Some (url (i + 1))
               Posts = posts }
         { Url = url i; Content = Overview content })
 
