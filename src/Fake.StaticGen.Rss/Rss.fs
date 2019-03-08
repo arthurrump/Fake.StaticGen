@@ -1,8 +1,7 @@
 ﻿namespace Fake.StaticGen.Rss
 
 open System
-
-open XmlEngine
+open Fake.StaticGen.XmlEngine
 
 type Channel = private Channel of XmlNode
 type Image = private Image of XmlNode

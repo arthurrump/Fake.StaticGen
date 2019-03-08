@@ -1,18 +1,17 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Description>Adds the ability to write templates for your Fake.StaticGen site with the GiraffeViewEngine.</Description>
+    <Description>Adds the ability to write templates for your Fake.StaticGen site with a DSL based on the GiraffeViewEngine.</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="GiraffeViewEngine.fs" />
+    <Compile Include="ViewEngine.fs" />
     <Compile Include="Html.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Fake.StaticGen\Fake.StaticGen.fsproj" />
+    <ProjectReference Include="..\Fake.StaticGen.XmlEngine\Fake.StaticGen.XmlEngine.fsproj" />
   </ItemGroup>
   
 </Project>

@@ -3,6 +3,7 @@
 #r "paket:
 source ../../src/Fake.StaticGen/bin/Debug/
 source ../../src/Fake.StaticGen.Html/bin/Debug/
+source ../../src/Fake.StaticGen.XmlEngine/bin/Debug/
 source https://api.nuget.org/v3/index.json
 nuget FSharp.Core 4.5.2 // Locked to be in sync with FAKE runtime
 nuget Fake.IO.FileSystem 
@@ -19,7 +20,7 @@ open Fake.Core
 open Fake.IO.Globbing.Operators
 open Fake.StaticGen
 open Fake.StaticGen.Html
-open Giraffe.GiraffeViewEngine
+open Fake.StaticGen.Html.ViewEngine
 
 type SiteConfig =
     { Title : string }

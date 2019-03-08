@@ -2,6 +2,7 @@
 source ../../src/Fake.StaticGen/bin/Debug/
 source ../../src/Fake.StaticGen.Html/bin/Debug/
 source ../../src/Fake.StaticGen.Rss/bin/Debug/
+source ../../src/Fake.StaticGen.XmlEngine/bin/Debug/
 source https://api.nuget.org/v3/index.json
 nuget FSharp.Core 4.5.2 // Locked to be in sync with FAKE runtime
 nuget Fake.IO.FileSystem 
@@ -23,8 +24,8 @@ open Fake.Core
 open Fake.IO.Globbing.Operators
 open Fake.StaticGen
 open Fake.StaticGen.Html
+open Fake.StaticGen.Html.ViewEngine
 open Fake.StaticGen.Rss
-open Giraffe.GiraffeViewEngine
 open Thoth.Json.Net
 open Markdig
 
@@ -47,7 +48,7 @@ type PageType =
     // | TagsOverview of string list
     // | Photo of Photo
     // | PhotoOverview of Overview<Photo>
-    | About of XmlNode
+    | About of XmlEngine.XmlNode
 
 and Post =
     { Title : string
@@ -55,7 +56,7 @@ and Post =
       PostedAt : DateTime
       Tags : string list
       HeaderImage : string
-      Content : XmlNode }
+      Content : XmlEngine.XmlNode }
 
 and Photo =
     { Filename : string

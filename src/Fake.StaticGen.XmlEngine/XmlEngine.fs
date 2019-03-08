@@ -13,7 +13,7 @@
 // https://github.com/SuaveIO/suave/blob/master/src/Experimental/Html.fs
 // https://github.com/giraffe-fsharp/Giraffe/blob/master/src/Giraffe/GiraffeViewEngine.fs
 
-module internal XmlEngine
+module Fake.StaticGen.XmlEngine
 
 open System.Net
 open System.Text
@@ -72,7 +72,7 @@ let comment     (content : string) = rawText (sprintf "<!-- %s -->" content)
 let str = encodedText
 
 // ---------------------------
-// Build XML views
+// Build HTML/XML views
 // ---------------------------
 
 [<RequireQualifiedAccess>]
@@ -80,9 +80,10 @@ module ViewBuilder =
     let inline private (+=) (sb : StringBuilder) (text : string) = sb.Append(text)
     let inline private (+!) (sb : StringBuilder) (text : string) = sb.Append(text) |> ignore
 
-    let [<Literal>] private selfClosingBracket = " />"
+    let inline private selfClosingBracket (isHtml : bool) =
+        if isHtml then ">" else " />"
 
-    let rec private buildNode (sb : StringBuilder) (node : XmlNode) : unit =
+    let rec private buildNode (isHtml : bool) (sb : StringBuilder) (node : XmlNode) : unit =
 
         let buildElement closingBracket (elemName, attributes : XmlAttribute array) =
             match attributes with
@@ -100,16 +101,19 @@ module ViewBuilder =
 
         let inline buildParentNode (elemName, attributes : XmlAttribute array) (nodes : XmlNode list) =
             do buildElement ">" (elemName, attributes)
-            for node in nodes do buildNode sb node
+            for node in nodes do buildNode isHtml sb node
             do sb += "</" += elemName +! ">"
 
         match node with
         | Text text             -> do sb +! text
         | ParentNode (e, nodes) -> do buildParentNode e nodes
-        | VoidElement e         -> do buildElement selfClosingBracket e
+        | VoidElement e         -> do buildElement (selfClosingBracket isHtml) e
 
-    let buildXmlNode = buildNode
-    let buildXmlNodes sb (nodes : XmlNode list) = for n in nodes do buildXmlNode sb n
+    let buildXmlNode  = buildNode false
+    let buildHtmlNode = buildNode true
+
+    let buildXmlNodes  sb (nodes : XmlNode list) = for n in nodes do buildXmlNode sb n
+    let buildHtmlNodes sb (nodes : XmlNode list) = for n in nodes do buildHtmlNode sb n
 
 // ---------------------------
 // Render XML views

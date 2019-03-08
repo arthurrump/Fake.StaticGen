@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>A simple library for creating XML documents, based on the GiraffeViewEngine.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="XmlEngine.fs" />
+  </ItemGroup>
+
+</Project>
