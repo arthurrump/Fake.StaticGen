@@ -8,9 +8,13 @@ nuget Fake.Tools.Git //"
 #load "./.fake/build.fsx/intellisense.fsx"
 
 open Fake.Core
+open Fake.Core.TargetOperators
 open Fake.DotNet
 open Fake.IO
 open Fake.Tools
+
+let [<Literal>] solution = "Fake.StaticGen.sln"
+let packagesLocation = Path.combine __SOURCE_DIRECTORY__ "packages"
 
 module Version =
     let withPatch patch version =
@@ -48,14 +52,40 @@ module Version =
 
         version |> withPatch (uint32 height) |> withPrerelease preview
 
-let buildOptionsWithVersion version (options : DotNet.BuildOptions) =
-    { options with 
-        MSBuildParams = 
-            { options.MSBuildParams with 
-                Properties = ("Version", string version)::options.MSBuildParams.Properties }}
+    let version = lazy getVersion ()
+
+[<AutoOpen>]
+module MSBuildParamHelpers =
+    let withVersion version (param : MSBuild.CliArguments) =
+        { param with Properties = ("Version", string version)::param.Properties }
+
+    let withNoWarn warnings (param : MSBuild.CliArguments) =
+        { param with 
+            NoWarn = 
+                param.NoWarn 
+                |> Option.defaultValue []
+                |> List.append warnings
+                |> Some }
+
+    let withDefaults version =
+        withVersion version >> withNoWarn [ "FS2003" ]
+
+Target.create "Clean" <| fun _ ->
+    DotNet.exec id "clean" solution |> ignore
+    DotNet.exec id "clean" (sprintf "%s -c Release" solution) |> ignore
+    Directory.delete packagesLocation
 
 Target.create "Build" <| fun _ ->
-    let version = Version.getVersion ()
-    DotNet.build (buildOptionsWithVersion version) "Fake.StaticGen.sln"
+    let version = Version.version.Value
+    DotNet.build (fun o -> { o with MSBuildParams = o.MSBuildParams |> withDefaults version }) solution
 
-Target.runOrDefault "Build"
+Target.create "Pack" <| fun _ ->
+    let version = Version.version.Value
+    solution |> DotNet.pack (fun o -> 
+        { o with 
+            MSBuildParams = o.MSBuildParams |> withDefaults version 
+            OutputPath = Some packagesLocation }) 
+
+"Build" ==> "Pack"
+
+Target.runOrDefault "Pack"
