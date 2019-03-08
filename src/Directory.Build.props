@@ -5,9 +5,11 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/arthurrump/Fake.StaticGen</RepositoryUrl>
     <PackageProjectUrl>https://github.com/arthurrump/Fake.StaticGen</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/arthurrump/Fake.StaticGen/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>BSD-2-Clause</PackageLicenseExpression>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="4.5.2" />
   </ItemGroup>
+
 </Project>
