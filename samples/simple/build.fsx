@@ -1,15 +1,13 @@
 // Content for the posts was provided by http://cipsum.com
 
 #r "paket:
-source ../../src/Fake.StaticGen/bin/Debug/
-source ../../src/Fake.StaticGen.Html/bin/Debug/
-source ../../src/Fake.StaticGen.XmlEngine/bin/Debug/
+source ../../packages
 source https://api.nuget.org/v3/index.json
 nuget FSharp.Core 4.5.2 // Locked to be in sync with FAKE runtime
 nuget Fake.IO.FileSystem 
 nuget Fake.Core.Target 
-nuget Fake.StaticGen 1.0.0
-nuget Fake.StaticGen.Html 1.0.0 //"
+nuget Fake.StaticGen
+nuget Fake.StaticGen.Html //"
 #load "./.fake/build.fsx/intellisense.fsx"
 #if !FAKE
   #r "Facades/netstandard" // Intellisense fix, see FAKE #1938

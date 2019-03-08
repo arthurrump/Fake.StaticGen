@@ -1,12 +1,12 @@
 // Content for this blog was provided by https://pdos.csail.mit.edu/archive/scigen/
 
 #r "paket:
-source ../../src/Fake.StaticGen/bin/Debug/
+source ../../packages
 source https://api.nuget.org/v3/index.json
 nuget FSharp.Core 4.5.2 // Locked to be in sync with FAKE runtime
 nuget Fake.IO.FileSystem 
 nuget Fake.Core.Target 
-nuget Fake.StaticGen 1.0.0 //"
+nuget Fake.StaticGen //"
 #load "./.fake/build.fsx/intellisense.fsx"
 #if !FAKE
   #r "Facades/netstandard" // Intellisense fix, see FAKE #1938

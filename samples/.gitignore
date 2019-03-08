@@ -1,0 +1,7 @@
+# Normally you'd want to check in the lock file to make sure 
+# you have a reliable build with the same version packages, 
+# but because the samples rely on a local build of the packages 
+# which have a different version for every commit, the version 
+# listed in the lock file will not be there when someone 
+# clones the repo for the first time.
+*/build.fsx.lock

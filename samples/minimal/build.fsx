@@ -1,10 +1,10 @@
 #r "paket:
-source ../../src/Fake.StaticGen/bin/Debug/
+source ../../packages
 source https://api.nuget.org/v3/index.json
 nuget FSharp.Core 4.5.2 // Locked to be in sync with FAKE runtime
 nuget Fake.IO.FileSystem 
 nuget Fake.Core.Target 
-nuget Fake.StaticGen 1.0.0 //"
+nuget Fake.StaticGen //"
 #load "./.fake/build.fsx/intellisense.fsx"
 
 open Fake.Core
