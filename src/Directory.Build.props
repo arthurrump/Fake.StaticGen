@@ -7,4 +7,7 @@
     <PackageProjectUrl>https://github.com/arthurrump/Fake.StaticGen</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/arthurrump/Fake.StaticGen/blob/master/LICENSE</PackageLicenseUrl>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="4.5.2" />
+  </ItemGroup>
 </Project>

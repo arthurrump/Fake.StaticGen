@@ -10,6 +10,9 @@
     <Compile Include="StaticSite.fs" />
   </ItemGroup>
 
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  <ItemGroup>
+    <PackageReference Include="Fake.Core.Trace" Version="5.12.4" />
+    <PackageReference Include="Fake.IO.FileSystem" Version="5.12.4" />
+  </ItemGroup>
   
 </Project>

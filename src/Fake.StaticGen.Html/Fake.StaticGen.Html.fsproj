@@ -5,15 +5,14 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Adds the ability to write templates for your Fake.StaticGen site with the GiraffeViewEngine.</Description>
   </PropertyGroup>
+
   <ItemGroup>
-    <Compile Include="..\..\paket-files\giraffe-fsharp\Giraffe\src\Giraffe\GiraffeViewEngine.fs">
-      <Paket>True</Paket>
-      <Link>paket-files/GiraffeViewEngine.fs</Link>
-    </Compile>
+    <Compile Include="GiraffeViewEngine.fs" />
     <Compile Include="Html.fs" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Fake.StaticGen\Fake.StaticGen.fsproj" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  
 </Project>

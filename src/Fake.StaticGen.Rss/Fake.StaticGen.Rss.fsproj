@@ -4,12 +4,14 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Provides a DSL to create an RSS feed for your Fake.StaticGen site in F#.</Description>
   </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Fake.StaticGen\Fake.StaticGen.fsproj" />
-  </ItemGroup>
+  
   <ItemGroup>
     <Compile Include="XmlEngine.fs" />
     <Compile Include="Rss.fs" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fake.StaticGen\Fake.StaticGen.fsproj" />
+  </ItemGroup>
+
 </Project>
