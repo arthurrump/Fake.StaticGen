@@ -50,7 +50,8 @@ module Version =
     let getVersionWithPrerelease () =
         let preview = 
             let branch = Git.Information.getBranchName repo
-            if branch = "master" then 
+            let isTagged () = Git.CommandHelper.directRunGitCommand repo "describe --exact-match HEAD"
+            if branch = "master" || isTagged () then 
                 None 
             else 
                 let commit = Git.Information.getCurrentSHA1 repo |> fun s -> s.Substring(0, 7)
