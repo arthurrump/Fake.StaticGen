@@ -15,6 +15,7 @@ open Fake.Tools
 
 let [<Literal>] solution = "Fake.StaticGen.sln"
 let packagesLocation = Path.combine __SOURCE_DIRECTORY__ "packages"
+let [<Literal>] repo = "."
 
 module Version =
     let withPatch patch version =
@@ -26,7 +27,6 @@ module Version =
 
     let getVersion () = 
         Trace.trace "Determining version based on Git history"
-        let repo = "."
         let version = File.readAsString "version" |> SemVer.parse
 
         let height =
@@ -75,6 +75,9 @@ Target.create "Clean" <| fun _ ->
     DotNet.exec id "clean" (sprintf "%s -c Release" solution) |> ignore
     Directory.delete packagesLocation
 
+Target.create "Version" <| fun _ ->
+    Trace.tracefn "Version: %O" (Version.version.Force ())
+
 Target.create "Build" <| fun _ ->
     let version = Version.version.Value
     DotNet.build (fun o -> { o with MSBuildParams = o.MSBuildParams |> withDefaults version }) solution
@@ -86,6 +89,12 @@ Target.create "Pack" <| fun _ ->
             MSBuildParams = o.MSBuildParams |> withDefaults version 
             OutputPath = Some packagesLocation }) 
 
-"Build" ==> "Pack"
+"Version" ==> "Build" ==> "Pack"
+
+Target.create "Tag" <| fun _ ->
+    let version = Version.version.Value |> Version.withPrerelease None
+    Git.CommandHelper.gitCommand repo (sprintf "tag -a v%O -m \"Version %O\"" version version)
+
+"Version" ==> "Tag"
 
 Target.runOrDefault "Pack"
