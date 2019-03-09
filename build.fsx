@@ -49,14 +49,19 @@ module Version =
         
     let getVersionWithPrerelease () =
         let preview = 
-            let branch = Git.Information.getBranchName repo
+            let branch = 
+                let gb = Git.Information.getBranchName repo
+                // Try get branch from Azure DevOps, if it's not properly set in Git
+                if gb = "NoBranch" 
+                then System.Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCHNAME") |> Option.ofObj
+                else Some gb
             let isTagged () = Git.CommandHelper.directRunGitCommand repo "describe --exact-match HEAD"
-            if branch = "master" || isTagged () then 
+            if branch = Some "master" || isTagged () then 
                 None 
             else 
                 let commit = Git.Information.getCurrentSHA1 repo |> fun s -> s.Substring(0, 7)
-                let dirty = if Git.Information.isCleanWorkingCopy repo then "" else "-dirty"
-                Some (branch + "-" + commit + dirty)
+                let dirty = if Git.Information.isCleanWorkingCopy repo then None else Some "dirty"
+                [ branch; Some commit; dirty ] |> List.choose id |> String.concat "-" |> Some
 
         getCleanVersion () |> appendPrerelease preview
 
