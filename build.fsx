@@ -110,5 +110,7 @@ Target.create "Pack" <| fun _ ->
 Target.create "Tag" <| fun _ ->
     let version = Version.getCleanVersion ()
     Git.CommandHelper.gitCommand repo (sprintf "tag -a v%O -m \"Version %O\"" version version)
+    System.Console.WriteLine("\n##vso[release.updatereleasename]{0}", version)
+    System.Console.WriteLine("\n##vso[task.setvariable variable=tagVersion]{0}", version)
 
 Target.runOrDefault "Pack"
