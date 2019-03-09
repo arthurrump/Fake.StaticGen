@@ -21,11 +21,15 @@ module Version =
     let withPatch patch version =
         { version with Patch = patch; Original = None }
 
-    let withPrerelease pre version =
-        let pre = pre |> Option.bind (fun p -> PreRelease.TryParse p)
+    let appendPrerelease suffix version =
+        let pre = 
+            match suffix, version.PreRelease with
+            | Some s, Some p -> PreRelease.TryParse (sprintf "%O-%s" p s)
+            | Some s, None -> PreRelease.TryParse s
+            | None, p -> p
         { version with PreRelease = pre; Original = None }
 
-    let getVersion () = 
+    let getCleanVersion () = 
         Trace.trace "Determining version based on Git history"
         let version = File.readAsString "version" |> SemVer.parse
 
@@ -41,6 +45,9 @@ module Version =
                 let height = Git.Branches.revisionsBetween repo previousVersionChange "HEAD"
                 if Git.Information.isCleanWorkingCopy repo then height else height + 1
 
+        version |> withPatch (uint32 height) 
+        
+    let getVersionWithPrerelease () =
         let preview = 
             let branch = Git.Information.getBranchName repo
             if branch = "master" then 
@@ -48,11 +55,11 @@ module Version =
             else 
                 let commit = Git.Information.getCurrentSHA1 repo |> fun s -> s.Substring(0, 7)
                 let dirty = if Git.Information.isCleanWorkingCopy repo then "" else "-dirty"
-                Some (branch + "-" + commit + dirty)
+                Some (commit + dirty)
 
-        version |> withPatch (uint32 height) |> withPrerelease preview
+        getCleanVersion () |> appendPrerelease preview
 
-    let version = lazy getVersion ()
+    let version = lazy getVersionWithPrerelease ()
 
 [<AutoOpen>]
 module MSBuildParamHelpers =
@@ -92,9 +99,7 @@ Target.create "Pack" <| fun _ ->
 "Version" ==> "Build" ==> "Pack"
 
 Target.create "Tag" <| fun _ ->
-    let version = Version.version.Value |> Version.withPrerelease None
+    let version = Version.getCleanVersion ()
     Git.CommandHelper.gitCommand repo (sprintf "tag -a v%O -m \"Version %O\"" version version)
-
-"Version" ==> "Tag"
 
 Target.runOrDefault "Pack"
