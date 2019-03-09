@@ -90,6 +90,7 @@ Target.create "Clean" <| fun _ ->
 
 Target.create "Version" <| fun _ ->
     Trace.tracefn "Version: %O" (Version.version.Force ())
+    System.Console.WriteLine("\n##vso[build.updatebuildnumber]{0}", Version.version.Value)
 
 Target.create "Build" <| fun _ ->
     let version = Version.version.Value
