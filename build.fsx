@@ -56,7 +56,7 @@ module Version =
             else 
                 let commit = Git.Information.getCurrentSHA1 repo |> fun s -> s.Substring(0, 7)
                 let dirty = if Git.Information.isCleanWorkingCopy repo then "" else "-dirty"
-                Some (commit + dirty)
+                Some (branch + "-" + commit + dirty)
 
         getCleanVersion () |> appendPrerelease preview
 
