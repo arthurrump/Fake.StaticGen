@@ -4,9 +4,11 @@ nuget Fake.Core.SemVer
 nuget Fake.Core.Target 
 nuget Fake.DotNet.Cli
 nuget Fake.IO.FileSystem
-nuget Fake.Tools.Git //"
+nuget Fake.Tools.Git
+nuget Fake.BuildServer.TeamFoundation //"
 #load "./.fake/build.fsx/intellisense.fsx"
 
+open Fake.BuildServer
 open Fake.Core
 open Fake.Core.TargetOperators
 open Fake.DotNet
@@ -84,7 +86,9 @@ Target.create "Clean" <| fun _ ->
     Directory.delete packagesLocation
 
 Target.create "Version" <| fun _ ->
-    Trace.tracefn "Version: %O" (Version.version.Force ())
+    let version = Version.version.Force ()
+    Trace.tracefn "Version: %O" version
+    TeamFoundation.defaultTraceListener.Write (TraceData.BuildNumber (string version))
 
 Target.create "Build" <| fun _ ->
     let version = Version.version.Value
