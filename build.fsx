@@ -16,6 +16,26 @@ open Fake.Tools
 let [<Literal>] solution = "Fake.StaticGen.sln"
 let packagesLocation = Path.combine __SOURCE_DIRECTORY__ "packages"
 let [<Literal>] repo = "."
+let [<Literal>] versionFile = "version"
+
+module GitHelpers =
+    let isTagged () = 
+        Git.CommandHelper.directRunGitCommand repo "describe --exact-match HEAD"
+
+    let previousChangeCommit file = 
+        Git.CommandHelper.runSimpleGitCommand repo ("log --format=%H -1 -- " + file)
+
+    let fileChanged file =
+        Git.FileStatus.getChangedFilesInWorkingCopy repo "HEAD" 
+        |> Seq.exists (fun (_, f) -> f = file)
+
+module AzureDevOps =
+    let tryGetSourceBranch () =
+        System.Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCHNAME") |> Option.ofObj
+
+    let updateBuildNumber version =
+        sprintf "\n##vso[build.updatebuildnumber]%O" version
+        |> System.Console.WriteLine
 
 module Version =
     let withPatch patch version =
@@ -31,17 +51,13 @@ module Version =
 
     let getCleanVersion () = 
         Trace.trace "Determining version based on Git history"
-        let version = File.readAsString "version" |> SemVer.parse
+        let version = File.readAsString versionFile |> SemVer.parse
 
         let height =
-            let versionChanged =
-                Git.FileStatus.getChangedFilesInWorkingCopy repo "HEAD" 
-                |> Seq.exists (fun (_, f) -> f = "version")
-            
-            if versionChanged then 
+            if GitHelpers.fileChanged versionFile then 
                 0
             else
-                let previousVersionChange = Git.CommandHelper.runSimpleGitCommand repo "log --format=%H -1 -- version"
+                let previousVersionChange = GitHelpers.previousChangeCommit versionFile
                 let height = Git.Branches.revisionsBetween repo previousVersionChange "HEAD"
                 if Git.Information.isCleanWorkingCopy repo then height else height + 1
 
@@ -51,12 +67,8 @@ module Version =
         let preview = 
             let branch = 
                 let gb = Git.Information.getBranchName repo
-                // Try get branch from Azure DevOps, if it's not properly set in Git
-                if gb = "NoBranch" 
-                then System.Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCHNAME") |> Option.ofObj
-                else Some gb
-            let isTagged () = Git.CommandHelper.directRunGitCommand repo "describe --exact-match HEAD"
-            if branch = Some "master" || isTagged () then 
+                if gb = "NoBranch" then AzureDevOps.tryGetSourceBranch () else Some gb
+            if branch = Some "master" || GitHelpers.isTagged () then 
                 None 
             else 
                 let commit = Git.Information.getCurrentSHA1 repo |> fun s -> s.Substring(0, 7)
@@ -90,7 +102,7 @@ Target.create "Clean" <| fun _ ->
 
 Target.create "Version" <| fun _ ->
     Trace.tracefn "Version: %O" (Version.version.Force ())
-    System.Console.WriteLine("\n##vso[build.updatebuildnumber]{0}", Version.version.Value)
+    AzureDevOps.updateBuildNumber Version.version.Value
 
 Target.create "Build" <| fun _ ->
     let version = Version.version.Value
@@ -107,10 +119,29 @@ Target.create "Pack" <| fun _ ->
 
 "Version" ==> "Build" ==> "Pack"
 
-Target.create "Tag" <| fun _ ->
-    let version = Version.getCleanVersion ()
-    Git.CommandHelper.gitCommand repo (sprintf "tag -a v%O -m \"Version %O\"" version version)
-    System.Console.WriteLine("\n##vso[release.updatereleasename]{0}", version)
-    System.Console.WriteLine("\n##vso[task.setvariable variable=tagVersion]{0}", version)
+let tag version = sprintf "v%O" version
 
-Target.runOrDefault "Pack"
+Target.create "Tag" <| fun _ ->
+    if Git.Information.isCleanWorkingCopy repo then
+        let version = Version.getCleanVersion ()
+        try
+            Git.CommandHelper.gitCommand repo (sprintf "tag -a %s -m \"Version %O\"" (tag version) version)
+        with
+        | _ when (GitHelpers.isTagged ()) -> 
+            Trace.tracefn "Commit was already tagged."
+    else
+        Trace.traceError "Can't tag a dirty working directory."
+
+Target.create "PushTag" <| fun param ->
+    let version = Version.version.Value
+    let remote = param.Context.Arguments |> List.tryExactlyOne
+    match remote with
+    | Some rem ->
+        Git.Branches.pushTag repo rem (tag version)
+    | None ->
+        Trace.traceError "Please specify a remote."
+
+"Tag" ==> "PushTag"
+"Version" ==> "PushTag"
+
+Target.runOrDefaultWithArguments "Pack"
