@@ -130,18 +130,19 @@ Target.create "Tag" <| fun _ ->
         | _ when (GitHelpers.isTagged ()) -> 
             Trace.tracefn "Commit was already tagged."
     else
-        Trace.traceError "Can't tag a dirty working directory."
+        failwith "Can't tag a dirty working directory."
 
 Target.create "PushTag" <| fun param ->
-    let version = Version.version.Value
     let remote = param.Context.Arguments |> List.tryExactlyOne
     match remote with
     | Some rem ->
+        let version = Version.version.Value
         Git.Branches.pushTag repo rem (tag version)
     | None ->
-        Trace.traceError "Please specify a remote."
+        failwith "Please specify the remote as an argument."
 
 "Tag" ==> "PushTag"
 "Version" ==> "PushTag"
+"Tag" ?=> "Version"
 
 Target.runOrDefaultWithArguments "Pack"
