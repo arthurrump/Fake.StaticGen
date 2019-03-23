@@ -37,6 +37,10 @@ module AzureDevOps =
         sprintf "\n##vso[build.updatebuildnumber]%O" version
         |> System.Console.WriteLine
 
+    let setVariable name value =
+        sprintf "\n##vso[task.setvariable variable=%s]%s" name value
+        |> System.Console.WriteLine
+
 module Version =
     let withPatch patch version =
         { version with Patch = patch; Original = None }
@@ -129,6 +133,7 @@ Target.create "Tag" <| fun _ ->
         with
         | _ when (GitHelpers.isTagged ()) -> 
             Trace.tracefn "Commit was already tagged."
+        AzureDevOps.setVariable "gitTag" (tag version)
     else
         failwith "Can't tag a dirty working directory."
 
