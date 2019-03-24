@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Tests.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Expecto" Version="8.9.1" />
+
+    <ProjectReference Include="..\..\src\Fake.StaticGen\Fake.StaticGen.fsproj" />
+    <ProjectReference Include="..\..\src\Fake.StaticGen.Markdown\Fake.StaticGen.Markdown.fsproj" />
+  </ItemGroup>
+
+</Project>
