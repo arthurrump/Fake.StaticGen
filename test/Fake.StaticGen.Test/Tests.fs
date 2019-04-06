@@ -19,7 +19,7 @@ let tests =
                   "# Hello world!" ] |> concatn
 
             let frontmatter, content = Markdown.splitFrontmatter markdown
-            Expect.equal frontmatter ([ "key: value"; "some text: '---'" ] |> concatn |> Some) "Correct frontmatter"
+            Expect.equal frontmatter ([ "key: value"; "some text: '---'" ] |> concatn |> Markdown.Yaml) "Correct frontmatter"
             Expect.equal content ([ ""; "# Hello world!" ] |> concatn) "Correct content"
         } 
 
@@ -33,7 +33,7 @@ let tests =
                   "# Hello world!" ] |> concatn
 
             let frontmatter, content = Markdown.splitFrontmatter markdown
-            Expect.equal frontmatter ([ "key = \"+++\""; "number = 5" ] |> concatn |> Some) "Correct frontmatter"
+            Expect.equal frontmatter ([ "key = \"+++\""; "number = 5" ] |> concatn |> Markdown.Toml) "Correct frontmatter"
             Expect.equal content ([ ""; "# Hello world!" ] |> concatn) "Correct content"
         }
 
@@ -44,7 +44,7 @@ let tests =
                   "# Hello world!" ] |> concatn
 
             let frontmatter, content = Markdown.splitFrontmatter markdown
-            Expect.equal frontmatter (Some """{ "test": "value", "other": 24 }""") "Correct frontmatter"
+            Expect.equal frontmatter (Markdown.Json """{ "test": "value", "other": 24 }""") "Correct frontmatter"
             Expect.equal content ([ ""; "# Hello world!" ] |> concatn) "Correct content"
         }
 
@@ -58,7 +58,7 @@ let tests =
                   "# Hello world!" ] |> concatn
             
             let frontmatter, content = Markdown.splitFrontmatter markdown
-            Expect.equal frontmatter ([ "{"; """  "test": "value","""; """  "other": 24"""; "}" ] |> concatn |> Some) 
+            Expect.equal frontmatter ([ "{"; """  "test": "value","""; """  "other": 24"""; "}" ] |> concatn |> Markdown.Json) 
                 "Correct frontmatter"
             Expect.equal content ([ ""; "# Hello world!" ] |> concatn) "Correct content"
         }
@@ -74,7 +74,7 @@ let tests =
                   "# Hello world!" ] |> concatn
             
             let frontmatter, content = Markdown.splitFrontmatter markdown
-            Expect.equal frontmatter ([ "{"; """  "test": {"""; """    "other": 24"""; "  }"; "}" ] |> concatn |> Some)
+            Expect.equal frontmatter ([ "{"; """  "test": {"""; """    "other": 24"""; "  }"; "}" ] |> concatn |> Markdown.Json)
                 "Correct frontmatter"
             Expect.equal content ([ ""; "# Hello world!" ] |> concatn) "Correct content"
         }
@@ -86,7 +86,7 @@ let tests =
                   "Lorem ipsum dolor sit amet etc..." ] |> concatn
             
             let frontmatter, content = Markdown.splitFrontmatter markdown
-            Expect.equal frontmatter None "Correct frontmatter"
+            Expect.equal frontmatter Markdown.None "Correct frontmatter"
             Expect.equal content markdown "Correct content"
         }
 
@@ -97,7 +97,7 @@ let tests =
                   "other = 23" ] |> concatn
 
             let frontmatter, content = Markdown.splitFrontmatter markdown
-            Expect.equal frontmatter ([ "value = \"hello\""; "other = 23" ] |> concatn |> Some) "Correct frontmatter"
+            Expect.equal frontmatter ([ "value = \"hello\""; "other = 23" ] |> concatn |> Markdown.Toml) "Correct frontmatter"
             Expect.equal content "" "Correct content"
         }
     ]

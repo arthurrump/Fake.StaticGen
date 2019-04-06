@@ -10,6 +10,12 @@ type MarkdownPage<'t> =
       RenderedMarkdown : string }
 
 module Markdown =
+    type Frontmatter =
+        | Yaml of string
+        | Toml of string
+        | Json of string
+        | None
+
     let splitFrontmatter markdown =
         let concatn lines = String.concat Environment.NewLine lines
         let lines = markdown |> String.splitStr Environment.NewLine
@@ -25,10 +31,10 @@ module Markdown =
         match lines with
         | "---"::tail ->
             let f, c = tail |> splitLines "---"
-            Some f, c
+            Yaml f, c
         | "+++"::tail -> 
             let f, c = tail |> splitLines "+++"
-            Some f, c
+            Toml f, c
         | first::_ when first.StartsWith "{" -> 
             let rec splitJson json (rest : string list) openBrackets =
                 match rest with
@@ -43,7 +49,7 @@ module Markdown =
                     else
                         splitJson (r::json) tail openBrackets
             let f, c = splitJson [] lines 0
-            Some (f |> concatn), c |> concatn
+            Json (f |> concatn), c |> concatn
         | _ -> 
             None, markdown
 
