@@ -117,7 +117,6 @@ Target.create "Pack" <| fun _ ->
     solution |> DotNet.pack (fun o -> 
         { o with 
             MSBuildParams = o.MSBuildParams |> withDefaults version 
-            Common = { o.Common with CustomParams = Some "--include-symbols" }
             NoBuild = true
             OutputPath = Some packagesLocation }) 
 

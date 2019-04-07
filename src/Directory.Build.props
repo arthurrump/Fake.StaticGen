@@ -3,17 +3,23 @@
     <Authors>Arthur Rump</Authors>
     <Copyright>Copyright (c) 2019, Arthur Rump</Copyright>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/arthurrump/Fake.StaticGen</RepositoryUrl>
     <PackageProjectUrl>https://github.com/arthurrump/Fake.StaticGen</PackageProjectUrl>
     <PackageLicenseExpression>BSD-2-Clause</PackageLicenseExpression>
   </PropertyGroup>
 
   <PropertyGroup>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
+
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="4.5.2" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-18618-05" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
