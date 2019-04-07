@@ -3,6 +3,7 @@ nuget FSharp.Core 4.5.2 // Locked to be in sync with FAKE runtime
 nuget Fake.Core.SemVer
 nuget Fake.Core.Target 
 nuget Fake.DotNet.Cli
+nuget Fake.DotNet.Testing.Expecto
 nuget Fake.IO.FileSystem
 nuget Fake.Tools.Git //"
 #load "./.fake/build.fsx/intellisense.fsx"
@@ -10,13 +11,18 @@ nuget Fake.Tools.Git //"
 open Fake.Core
 open Fake.Core.TargetOperators
 open Fake.DotNet
+open Fake.DotNet.Testing
 open Fake.IO
+open Fake.IO.Globbing.Operators
 open Fake.Tools
 
+let (</>) = Path.combine
+
 let [<Literal>] solution = "Fake.StaticGen.sln"
-let packagesLocation = Path.combine __SOURCE_DIRECTORY__ "packages"
+let packagesLocation = __SOURCE_DIRECTORY__ </> "packages"
 let [<Literal>] repo = "."
 let [<Literal>] versionFile = "version"
+let tests = __SOURCE_DIRECTORY__ </> "test"
 
 module GitHelpers =
     let isTagged () = 
@@ -121,6 +127,11 @@ Target.create "Pack" <| fun _ ->
             OutputPath = Some packagesLocation }) 
 
 "Version" ==> "Build" ==> "Pack"
+
+Target.create "Test" <| fun _ ->
+    Expecto.run id (!! (tests </> "**" </> "bin" </> "**" </> "*.Test.dll"))
+
+"Build" ==> "Test"
 
 let tag version = sprintf "v%O" version
 
