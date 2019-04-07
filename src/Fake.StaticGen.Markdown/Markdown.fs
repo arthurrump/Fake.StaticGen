@@ -5,17 +5,7 @@ open Fake.StaticGen
 open Markdig
 open System
 
-type MarkdownPage<'t> =
-    { Frontmatter : Page<'t>
-      RenderedMarkdown : string }
-
 module Markdown =
-    type Frontmatter =
-        | Yaml of string
-        | Toml of string
-        | Json of string
-        | None
-
     let splitFrontmatter markdown =
         let concatn lines = String.concat Environment.NewLine lines
         let lines = markdown |> String.splitStr Environment.NewLine
@@ -31,10 +21,10 @@ module Markdown =
         match lines with
         | "---"::tail ->
             let f, c = tail |> splitLines "---"
-            Yaml f, c
+            Some f, c
         | "+++"::tail -> 
             let f, c = tail |> splitLines "+++"
-            Toml f, c
+            Some f, c
         | first::_ when first.StartsWith "{" -> 
             let rec splitJson json (rest : string list) openBrackets =
                 match rest with
@@ -49,14 +39,27 @@ module Markdown =
                     else
                         splitJson (r::json) tail openBrackets
             let f, c = splitJson [] lines 0
-            Json (f |> concatn), c |> concatn
+            Some (f |> concatn), c |> concatn
         | _ -> 
             None, markdown
 
 module StaticSite =
-    let withPagesFromMarkdown markdownPages parseFrontmatter =
-        markdownPages
-        |> Seq.map (fun content ->
+    /// Add multiple pages from markdown files with a custom Markdig MarkdownPipeline
+    let withPagesFromCustomMarkdown pipeline sourceFiles parse =
+        let parseMarkdown path content =
             let frontmatter, markdown = Markdown.splitFrontmatter content
-            { Frontmatter = parseFrontmatter frontmatter
-              RenderedMarkdown = Markdown.ToHtml markdown })
+            let rendered = Markdown.ToHtml (markdown, pipeline)
+            parse path frontmatter rendered
+        StaticSite.withPagesFromSources sourceFiles parseMarkdown
+
+    /// Add multiple pages from markdown files
+    let withPagesFromMarkdown sourceFiles parse =
+        withPagesFromCustomMarkdown (MarkdownPipelineBuilder().Build()) sourceFiles parse
+
+    /// Add a page from a markdown file with a custom Markdig MarkdownPipeline
+    let withPageFromCustomMarkdown pipeline sourceFile parse =
+        withPagesFromCustomMarkdown pipeline [ sourceFile ] parse
+
+    /// Add a page from a markdown file
+    let withPageFromMarkdown sourceFile parse =
+        withPagesFromMarkdown [ sourceFile ] parse
