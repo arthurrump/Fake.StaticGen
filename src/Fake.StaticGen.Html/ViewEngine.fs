@@ -20,9 +20,15 @@ open Fake.StaticGen.XmlEngine
 
 // Duplicates, so that you probably don't need to open the 
 // XmlEngine when using the ViewEngine
+
+/// Add raw HTML into the document without encoding
 let rawText = rawText
+/// Add text inside a comment
 let comment = comment
+/// Add HTML-encoded text
 let str = str
+/// Add HTML-encoded text with a Printf style format string
+let strf fmt = Printf.ksprintf str fmt
 
 // ---------------------------
 // Default HTML elements
