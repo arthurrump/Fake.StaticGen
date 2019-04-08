@@ -6,9 +6,9 @@ open Markdig
 open System
 
 module Markdown =
-    let splitFrontmatter markdown =
+    let splitFrontmatter (markdown : string) =
         let concatn lines = String.concat Environment.NewLine lines
-        let lines = markdown |> String.splitStr Environment.NewLine
+        let lines = markdown.Split([| "\r\n"; "\n"; "\r" |], StringSplitOptions.None) |> List.ofArray
         
         let splitLines splitStr lines =
             let first = lines |> Seq.takeWhile (fun l -> l <> splitStr)

@@ -5,7 +5,9 @@ open System
 
 open Fake.StaticGen.Markdown
 
-let concatn lines = String.concat Environment.NewLine lines
+let concatrn lines = String.concat "\r\n" lines
+let concatn lines = String.concat "\n" lines
+let concatne lines = String.concat Environment.NewLine lines
 
 let tests =
     testList "Markdown" [
@@ -19,8 +21,8 @@ let tests =
                   "# Hello world!" ] |> concatn
 
             let frontmatter, content = Markdown.splitFrontmatter markdown
-            Expect.equal frontmatter ([ "key: value"; "some text: '---'" ] |> concatn |> Some) "Correct frontmatter"
-            Expect.equal content ([ ""; "# Hello world!" ] |> concatn) "Correct content"
+            Expect.equal frontmatter ([ "key: value"; "some text: '---'" ] |> concatne |> Some) "Correct frontmatter"
+            Expect.equal content ([ ""; "# Hello world!" ] |> concatne) "Correct content"
         } 
 
         test "Split TOML frontmatter" {
@@ -30,11 +32,11 @@ let tests =
                   "number = 5"
                   "+++"
                   ""
-                  "# Hello world!" ] |> concatn
+                  "# Hello world!" ] |> concatrn
 
             let frontmatter, content = Markdown.splitFrontmatter markdown
-            Expect.equal frontmatter ([ "key = \"+++\""; "number = 5" ] |> concatn |> Some) "Correct frontmatter"
-            Expect.equal content ([ ""; "# Hello world!" ] |> concatn) "Correct content"
+            Expect.equal frontmatter ([ "key = \"+++\""; "number = 5" ] |> concatne |> Some) "Correct frontmatter"
+            Expect.equal content ([ ""; "# Hello world!" ] |> concatne) "Correct content"
         }
 
         test "Split oneline JSON frontmatter" {
@@ -45,7 +47,7 @@ let tests =
 
             let frontmatter, content = Markdown.splitFrontmatter markdown
             Expect.equal frontmatter (Some """{ "test": "value", "other": 24 }""") "Correct frontmatter"
-            Expect.equal content ([ ""; "# Hello world!" ] |> concatn) "Correct content"
+            Expect.equal content ([ ""; "# Hello world!" ] |> concatne) "Correct content"
         }
 
         test "Split multiline JSON frontmatter" {
@@ -58,9 +60,9 @@ let tests =
                   "# Hello world!" ] |> concatn
             
             let frontmatter, content = Markdown.splitFrontmatter markdown
-            Expect.equal frontmatter ([ "{"; """  "test": "value","""; """  "other": 24"""; "}" ] |> concatn |> Some) 
+            Expect.equal frontmatter ([ "{"; """  "test": "value","""; """  "other": 24"""; "}" ] |> concatne |> Some) 
                 "Correct frontmatter"
-            Expect.equal content ([ ""; "# Hello world!" ] |> concatn) "Correct content"
+            Expect.equal content ([ ""; "# Hello world!" ] |> concatne) "Correct content"
         }
 
         test "Split nested-object JSON frontmatter" {
@@ -71,12 +73,12 @@ let tests =
                   "  }"
                   "}"
                   ""
-                  "# Hello world!" ] |> concatn
+                  "# Hello world!" ] |> concatrn
             
             let frontmatter, content = Markdown.splitFrontmatter markdown
-            Expect.equal frontmatter ([ "{"; """  "test": {"""; """    "other": 24"""; "  }"; "}" ] |> concatn |> Some)
+            Expect.equal frontmatter ([ "{"; """  "test": {"""; """    "other": 24"""; "  }"; "}" ] |> concatne |> Some)
                 "Correct frontmatter"
-            Expect.equal content ([ ""; "# Hello world!" ] |> concatn) "Correct content"
+            Expect.equal content ([ ""; "# Hello world!" ] |> concatne) "Correct content"
         }
 
         test "Split with no frontmatter" {
@@ -97,7 +99,7 @@ let tests =
                   "other = 23" ] |> concatn
 
             let frontmatter, content = Markdown.splitFrontmatter markdown
-            Expect.equal frontmatter ([ "value = \"hello\""; "other = 23" ] |> concatn |> Some) "Correct frontmatter"
+            Expect.equal frontmatter ([ "value = \"hello\""; "other = 23" ] |> concatne |> Some) "Correct frontmatter"
             Expect.equal content "" "Correct content"
         }
     ]
