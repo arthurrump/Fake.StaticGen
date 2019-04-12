@@ -3,14 +3,35 @@
 open Fake.Core
 open Fake.IO
 
-[<AutoOpen>]
-module private UrlHelpers =
+open System
+
+module Path =
+    /// 
+    let getLowestDirectory = 
+        Path.getDirectory >> String.splitStr Path.directorySeparator >> List.last
+
+module Url =
+    /// Normalize a url to be lowercase, using forward slashes and with no slashes at the beginning or end
     let normalizeUrl (url : string) =
         url.Replace("\\", "/").Trim().TrimEnd('/').TrimStart('/').ToLowerInvariant()
 
+    /// Normalize a relative url starting with a forward slash, otherwise the same as normalizeUrl
     let normalizeRelativeUrl url =
         "/" + (normalizeUrl url)
 
+    /// Turn text into a "slug" that can be used as a part of a url by replacing spaces by dashes 
+    /// and ignoring other special characters
+    let slugify (text : string) =
+        text.ToLowerInvariant()
+            .Replace(" ", "-")
+            .ToCharArray()
+            |> Array.filter (fun c -> (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c = '-')
+            |> String.Concat
+
+open Url
+
+[<AutoOpen>]
+module private UrlHelpers =
     let pageUrlToFilePath (url : string) =
         let url = normalizeUrl url
         if System.IO.Path.HasExtension url then url else url + "/index.html"
