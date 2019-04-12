@@ -5,6 +5,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/arthurrump/Fake.StaticGen</PackageProjectUrl>
     <PackageLicenseExpression>BSD-2-Clause</PackageLicenseExpression>
+    <Description>This is a preview. Fake.StaticGen is a fully customizable static site generator that uses the power of FAKE to easily generate your site.</Description>
   </PropertyGroup>
 
   <PropertyGroup>

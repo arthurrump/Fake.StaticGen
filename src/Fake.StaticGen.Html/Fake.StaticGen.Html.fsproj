@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Description>Adds the ability to write templates for your Fake.StaticGen site with a DSL based on the GiraffeViewEngine.</Description>
+    <Description>$(Description) Adds the ability to write templates for your site with a DSL based on the GiraffeViewEngine.</Description>
   </PropertyGroup>
 
   <ItemGroup>

@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>$(Description) Adds the ability to use Markdown files for your site.</Description>
   </PropertyGroup>
 
   <ItemGroup>

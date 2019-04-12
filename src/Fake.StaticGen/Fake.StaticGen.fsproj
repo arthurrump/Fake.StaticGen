@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Description>A fully customizable static site generator using the power of FAKE to easily generate your site.</Description>
   </PropertyGroup>
 
   <ItemGroup>
