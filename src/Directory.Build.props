@@ -11,8 +11,8 @@
   <PropertyGroup>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
 
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <!-- <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat> -->
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
