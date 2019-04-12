@@ -4,9 +4,10 @@ open Fake.Core
 open Fake.IO
 
 open System
+open System.Text
 
 module Path =
-    /// 
+    /// Get the lowest directory in the path
     let getLowestDirectory = 
         Path.getDirectory >> String.splitStr Path.directorySeparator >> List.last
 
@@ -44,7 +45,7 @@ type StaticSite<'config, 'content> =
     { BaseUrl : string
       Config : 'config
       Pages : Page<'content> seq
-      Files : Page<string> seq }
+      Files : Page<byte []> seq }
 
     member this.AbsoluteUrl relativeUrl =
         this.BaseUrl + "/" + (normalizeUrl relativeUrl)
@@ -108,13 +109,17 @@ module StaticSite =
         let file = { Url = normalizeRelativeUrl url; Content = content }
         site |> withFiles [ file ]
 
+    /// Add a file with text
+    let withFileFromString (content : string) =
+        withFile (Encoding.UTF8.GetBytes(content))
+
     /// Copy multiple source files
     let withFilesFromSources sourceFiles urlMapper site =
         let files = 
             sourceFiles 
             |> Seq.map (fun path -> 
                 Trace.tracefn "Reading %s" (Path.toRelativeFromCurrent path)
-                let content = path |> File.readAsString
+                let content = path |> File.readAsBytes
                 { Url = urlMapper path
                   Content = content })
         site |> withFiles files
@@ -144,16 +149,19 @@ module StaticSite =
         site |> withPages overview
 
     /// Create an overview file based on the list of all pages, e.g. an RSS feed
-    let withOverviewFile createOverview site =
-        let file = Seq.delay (fun _ -> seq [ createOverview site ])
+    let withOverviewFile (createOverview : StaticSite<'a, 'b> -> Page<string>) site =
+        let file = Seq.delay (fun _ -> 
+            let file = createOverview site
+            let content = Encoding.UTF8.GetBytes(file.Content)
+            seq [ { Url = file.Url; Content = content } ])
         site |> withFiles file
 
     // Dry run generate, returning a map of file paths and contents, instead of writing them out to disk
-    let generateDry outputPath render site =
+    let generateDry outputPath (render : StaticSite<'a, 'b> -> Page<'b> -> string) site =
         site.Pages
         |> Seq.map (fun p ->
             { Url = pageUrlToFilePath p.Url
-              Content = p |> render site })
+              Content = p |> render site |> Encoding.UTF8.GetBytes })
         |> Seq.append site.Files
         |> Seq.map (fun f ->
             let url = normalizeUrl f.Url
@@ -168,4 +176,4 @@ module StaticSite =
         |> Seq.iter (fun (path, content) -> 
             Trace.tracefn "Writing %s" (Path.toRelativeFromCurrent path)
             Directory.ensure (Path.getDirectory path)
-            File.writeString false path content)
+            File.writeBytes path content)
