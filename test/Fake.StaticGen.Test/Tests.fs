@@ -9,8 +9,8 @@ let concatrn lines = String.concat "\r\n" lines
 let concatn lines = String.concat "\n" lines
 let concatne lines = String.concat Environment.NewLine lines
 
-let tests =
-    testList "Markdown" [
+let frontmatterTests =
+    testList "Markdown Frontmatter splitting" [
         test "Split YAML frontmatter" {
             let markdown = 
                 [ "---"
@@ -103,6 +103,33 @@ let tests =
             Expect.equal content "" "Correct content"
         }
     ]
+
+open Markdig
+open Markdig.Syntax.Inlines
+
+let markdigExtensionTests =
+    testList "Markdig Extensions" [
+        test "LinkUrlRewrite" {
+            let rewriter (link : LinkInline) =
+                if link.Url.StartsWith("https://") 
+                then "https://example.net"
+                else link.Url
+
+            let pipeline =
+                MarkdownPipelineBuilder()
+                    .UseLinkUrlRewrite(rewriter)
+                    .Build()
+
+            let markdown = "[Test1](https://example.com), [Test2](http://example.com)"
+            let html = Markdown.ToHtml(markdown, pipeline)
+            Expect.isTrue (html.Contains("https://example.net")) "Contains new https"
+            Expect.isTrue (html.Contains("http://example.com")) "Not replaced http"
+            Expect.isFalse (html.Contains("https://example.com")) "Replaced old https"
+        }
+    ]
+
+let tests =
+    testList "All tests" [ frontmatterTests; markdigExtensionTests ]
 
 [<EntryPoint>]
 let main args = 
