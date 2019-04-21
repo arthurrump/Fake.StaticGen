@@ -22,6 +22,7 @@ let [<Literal>] solution = "Fake.StaticGen.sln"
 let packagesLocation = __SOURCE_DIRECTORY__ </> "packages"
 let [<Literal>] repo = "."
 let [<Literal>] versionFile = "version"
+let [<Literal>] versionPreFile = "version-pre"
 let tests = __SOURCE_DIRECTORY__ </> "test"
 
 module GitHelpers =
@@ -71,7 +72,12 @@ module Version =
                 let height = Git.Branches.revisionsBetween repo previousVersionChange "HEAD"
                 if Git.Information.isCleanWorkingCopy repo then height else height + 1
 
-        version |> withPatch (uint32 height) 
+        let pre = 
+            if File.exists versionPreFile
+            then Some (File.readAsString versionPreFile)
+            else None
+
+        version |> withPatch (uint32 height) |> appendPrerelease pre
         
     let getVersionWithPrerelease () =
         let preview = 
