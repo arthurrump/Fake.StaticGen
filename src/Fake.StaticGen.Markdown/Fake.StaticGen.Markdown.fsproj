@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <Compile Include="Markdown.fs" />
-    <Compile Include="MarkdigExtensions.fs" />
   </ItemGroup>
 
   <ItemGroup>
