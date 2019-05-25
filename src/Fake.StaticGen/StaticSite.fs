@@ -43,15 +43,15 @@ type Page<'content> =
 
 type File = Page<byte []>
 
-type Helpers<'config, 'comp> = 
+type Helpers<'config, 'seg> = 
     { Config : 'config option
-      Components : Map<string, 'comp>
+      Segments : Map<string, 'seg>
       BaseUrl : string }
 
     member this.AbsoluteUrl relativeUrl =
         this.BaseUrl + "/" + (normalizeUrl relativeUrl)
 
-type Component<'config, 'comp, 'page> = Helpers<'config, 'comp> -> Page<'page> seq -> File seq -> 'comp
+type Segment<'config, 'seg, 'page> = Helpers<'config, 'seg> -> Page<'page> seq -> File seq -> 'seg
 
 type SourceParser<'content> = string -> string -> 'content
 
@@ -64,7 +64,7 @@ type FileSource =
     { Url : string
       Source : string }
 
-type Template<'config, 'comp, 'page> = Helpers<'config, 'comp> -> Page<'page> -> string
+type Template<'config, 'seg, 'page> = Helpers<'config, 'seg> -> Page<'page> -> string
 
 [<RequireQualifiedAccess>]
 type Config<'config> =
@@ -72,21 +72,21 @@ type Config<'config> =
     | File of path : string * parse : (string -> 'config)
 
 [<NoComparison>]
-type SiteBuilderState<'config, 'comp, 'page> = 
+type SiteBuilderState<'config, 'seg, 'page> = 
     { Config : Config<'config> option
-      Components : (string * Component<'config, 'comp, 'page>) list
-      Template : Template<'config, 'comp, 'page>
+      Segments : (string * Segment<'config, 'seg, 'page>) list
+      Template : Template<'config, 'seg, 'page>
       Pages : Page<'page> seq
       PageSources : PageSource<'page> seq
       Files : File seq
       FileSources : FileSource seq
       ExtensionValues : Map<string, obj> }
 
-type SiteBuilder<'config, 'comp, 'page> internal () =
+type SiteBuilder<'config, 'seg, 'page> internal () =
 
     member __.Yield (_) =
         { Config = None
-          Components = []
+          Segments = []
           Template = fun _ page -> sprintf "No template set. Page contents:\n%A" page.Content
           Pages = Seq.empty
           PageSources = Seq.empty
@@ -95,61 +95,61 @@ type SiteBuilder<'config, 'comp, 'page> internal () =
           ExtensionValues = Map.empty }
 
     [<CustomOperation("config")>]
-    member __.Config (state, config : 'config) : SiteBuilderState<'config, 'comp, 'page> =
+    member __.Config (state, config : 'config) : SiteBuilderState<'config, 'seg, 'page> =
         { state with Config = Some (Config.Object config) }
     
     [<CustomOperation("configFile")>]
-    member __.ConfigFile (state, sourceFile : string, parse : (string -> 'config)) : SiteBuilderState<'config, 'comp, 'page> =
+    member __.ConfigFile (state, sourceFile : string, parse : (string -> 'config)) : SiteBuilderState<'config, 'seg, 'page> =
         { state with Config = Some (Config.File (sourceFile, parse)) }
 
-    [<CustomOperation("component")>]
-    member __.Component(state, name, comp) : SiteBuilderState<'config, 'comp, 'page> =
-        { state with Components = (name, comp)::state.Components }
+    [<CustomOperation("segment")>]
+    member __.Segment(state, name, comp) : SiteBuilderState<'config, 'seg, 'page> =
+        { state with Segments = (name, comp)::state.Segments }
 
     [<CustomOperation("template")>]
-    member __.Template (state, template) : SiteBuilderState<'config, 'comp, 'page> =
+    member __.Template (state, template) : SiteBuilderState<'config, 'seg, 'page> =
         { state with Template = template }
 
     [<CustomOperation("page")>]
-    member __.Page (state, url : string, content : 'page) : SiteBuilderState<'config, 'comp, 'page> =
+    member __.Page (state, url : string, content : 'page) : SiteBuilderState<'config, 'seg, 'page> =
         { state with Pages = state.Pages |> Seq.append [ { Url = url; Content = content } ] }
 
     [<CustomOperation("pageSource")>]
-    member __.PageSource (state, pageSource) : SiteBuilderState<'config, 'comp, 'page> =
+    member __.PageSource (state, pageSource) : SiteBuilderState<'config, 'seg, 'page> =
         { state with PageSources = state.PageSources |> Seq.append [ pageSource ] }
 
     [<CustomOperation("pages")>]
-    member __.Pages (state, pages) : SiteBuilderState<'config, 'comp, 'page> =
+    member __.Pages (state, pages) : SiteBuilderState<'config, 'seg, 'page> =
         { state with Pages = state.Pages |> Seq.append pages }
 
     [<CustomOperation("pageSources")>]
-    member __.PageSources (state, pageSources) : SiteBuilderState<'config, 'comp, 'page> =
+    member __.PageSources (state, pageSources) : SiteBuilderState<'config, 'seg, 'page> =
         { state with PageSources = state.PageSources |> Seq.append pageSources }
 
     [<CustomOperation("file")>]
-    member __.File (state, url, content) : SiteBuilderState<'config, 'comp, 'file> =
+    member __.File (state, url, content) : SiteBuilderState<'config, 'seg, 'file> =
         { state with Files = state.Files |> Seq.append [ { Url = url; Content = content } ] }
 
     [<CustomOperation("fileStr")>]
-    member __.FileStr (state, url, content : string) : SiteBuilderState<'config, 'comp, 'file> =
+    member __.FileStr (state, url, content : string) : SiteBuilderState<'config, 'seg, 'file> =
         let bytes = Encoding.UTF8.GetBytes(content)
         { state with Files = state.Files |> Seq.append [ { Url = url; Content = bytes } ] }
 
     [<CustomOperation("fileSource")>]
-    member __.FileSource (state, fileSource : FileSource) : SiteBuilderState<'config, 'comp, 'file> =
+    member __.FileSource (state, fileSource : FileSource) : SiteBuilderState<'config, 'seg, 'file> =
         { state with FileSources = state.FileSources |> Seq.append [ fileSource ] }
 
     [<CustomOperation("files")>]
-    member __.Files (state, files : #seq<File>) : SiteBuilderState<'config, 'comp, 'file> =
+    member __.Files (state, files : #seq<File>) : SiteBuilderState<'config, 'seg, 'file> =
         { state with Files = state.Files |> Seq.append files }
 
     [<CustomOperation("fileSources")>]
-    member __.FileSources (state, fileSources : #seq<FileSource>) : SiteBuilderState<'config, 'comp, 'file> =
+    member __.FileSources (state, fileSources : #seq<FileSource>) : SiteBuilderState<'config, 'seg, 'file> =
         { state with FileSources = state.FileSources |> Seq.append fileSources }
 
 [<AutoOpen>]
 module SiteBuilder =
-    let staticsite<'config, 'comp, 'page> = SiteBuilder<'config, 'comp, 'page>()
+    let staticsite<'config, 'seg, 'page> = SiteBuilder<'config, 'seg, 'page>()
 
 module StaticSite =
     /// Write the site files to the `outputPath`
@@ -177,15 +177,15 @@ module StaticSite =
 
         let helpers = 
             { Config = config
-              Components = Map.empty
+              Segments = Map.empty
               BaseUrl = baseUrl }
         
         let helpers =
-            (site.Components, helpers)
+            (site.Segments, helpers)
             ||> List.foldBack (fun (key, comp) helpers ->
                 { helpers with 
-                    Helpers.Components = 
-                        helpers.Components 
+                    Helpers.Segments = 
+                        helpers.Segments 
                         |> Map.add key (comp helpers site.Pages site.Files) })
         
         Directory.delete outputPath
