@@ -79,7 +79,8 @@ type SiteBuilderState<'config, 'comp, 'page> =
       Pages : Page<'page> seq
       PageSources : PageSource<'page> seq
       Files : File seq
-      FileSources : FileSource seq }
+      FileSources : FileSource seq
+      ExtensionValues : Map<string, obj> }
 
 type SiteBuilder<'config, 'comp, 'page> internal () =
 
@@ -90,7 +91,8 @@ type SiteBuilder<'config, 'comp, 'page> internal () =
           Pages = Seq.empty
           PageSources = Seq.empty
           Files = Seq.empty
-          FileSources = Seq.empty }
+          FileSources = Seq.empty
+          ExtensionValues = Map.empty }
 
     [<CustomOperation("config")>]
     member __.Config (state, config : 'config) : SiteBuilderState<'config, 'comp, 'page> =
