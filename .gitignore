@@ -165,6 +165,9 @@ $RECYCLE.BIN/
 # NuGet Packages Directory
 packages/
 
+# Ionide
+.ionide/
+
 # Generated documentation folder
 docs/output/
 
