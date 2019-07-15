@@ -34,8 +34,8 @@ open Url
 [<AutoOpen>]
 module private UrlHelpers =
     let pageUrlToFilePath (url : string) =
-        let url = normalizeUrl url
-        if System.IO.Path.HasExtension url then url else url + "/index.html"
+        let nurl = normalizeUrl url
+        if System.IO.Path.HasExtension url then nurl else nurl + "/index.html"
 
 type Page<'content> =
     { Url : string
