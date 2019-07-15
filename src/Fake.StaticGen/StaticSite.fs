@@ -14,7 +14,7 @@ module Path =
 module Url =
     /// Normalize a url to be lowercase, using forward slashes and with no slashes at the beginning or end
     let normalizeUrl (url : string) =
-        url.Replace("\\", "/").Trim().TrimEnd('/').TrimStart('/').ToLowerInvariant()
+        url.Replace("\\", "/").Trim().TrimStart('/').ToLowerInvariant()
 
     /// Normalize a relative url starting with a forward slash, otherwise the same as normalizeUrl
     let normalizeRelativeUrl url =
@@ -34,7 +34,7 @@ open Url
 [<AutoOpen>]
 module private UrlHelpers =
     let pageUrlToFilePath (url : string) =
-        let nurl = normalizeUrl url
+        let nurl = (normalizeUrl url).TrimEnd('/')
         if System.IO.Path.HasExtension url then nurl else nurl + "/index.html"
 
 type Page<'content> =
